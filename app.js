@@ -769,6 +769,8 @@ function init3DStylingLab() {
       scannerBeam?.classList.add('scanning');
     } else {
       scannerBeam?.classList.remove('scanning');
+    }
+
      // Draw Face Wireframe (Only draw if no portrait uploaded, or if biometrics is on)
     if (!overlayImage || showBiometrics) {
       ctx.beginPath();
