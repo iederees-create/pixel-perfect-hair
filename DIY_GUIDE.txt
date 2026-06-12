@@ -58,26 +58,26 @@ GitHub Pages provides free static hosting for HTML templates. To launch your sit
 ------------------------------------------------------------------------
 SECTION 5: INTEGRATING WITH AN EXISTING WIX SITE
 ------------------------------------------------------------------------
-If you already have a Wix website and want to use this custom interactive template (specifically the 3D Styling Lab or Tracker) on your Wix page, you can integrate it in three ways:
+If you already have a Wix website and want to use this custom interactive template (specifically the Hairstyle Lookbook & Matcher or client progress Tracker) on your Wix page, you can integrate it in three ways:
 
-METHOD A: EMBED VIA HTML IFRAME (RECOMMENDED FOR STYLING LAB ONLY)
+METHOD A: EMBED VIA HTML IFRAME (RECOMMENDED FOR THE INTERACTIVE MATCHER)
 1. In your Wix Editor, click the "+" button (Add Elements) -> select "Embed Code" -> click "HTML Embed".
 2. Set the Embed Type to "Website Address".
 3. Paste the URL of your live hosted site (from Section 4, e.g., `https://<username>.github.io/<repository>/#styling-lab`).
-4. Resize the iframe box inside Wix so it displays the 3D Styling viewport cleanly.
+4. Resize the iframe box inside Wix so it displays the interactive canvas and lookbook cards cleanly.
 
 METHOD B: SUBDOMAIN INTEGRATION (RECOMMENDED FOR MAIN SALON SITE)
 If you want to keep your main site on Wix but offer this interactive experience as a premium feature:
 1. Host these files on GitHub Pages or Netlify.
-2. In your domain provider settings, create a subdomain (e.g. `lab.yoursalon.com`) pointing to your hosted GitHub Pages site.
-3. In your Wix Navigation, add a link titled "3D Styling Lab" that links directly to `https://lab.yoursalon.com`.
+2. In your domain provider settings, create a subdomain (e.g. `lookbook.yoursalon.com`) pointing to your hosted GitHub Pages site.
+3. In your Wix Navigation, add a link titled "Hairstyle Lookbook" that links directly to `https://lookbook.yoursalon.com`.
 
 METHOD C: CUSTOM CODE INJECTION
-If you want to inject the styling lab code directly into a Wix page:
+If you want to inject the lookbook and matcher code directly into a Wix page:
 1. In your Wix Dashboard, go to Settings -> Custom Code.
 2. Add a new code block, select "Body - end", and paste the custom Javascript.
 3. Add a code block to "Head" for the CSS layout.
-4. (Note: Embedding via iframe is significantly easier and more secure).
+4. (Note: Embedding via iframe is significantly easier, more reliable, and preserves the custom glassmorphic canvas scaling).
 
 ------------------------------------------------------------------------
 NEED HELP?

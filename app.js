@@ -206,23 +206,12 @@ function init3DStylingLab() {
   const canvas = document.getElementById('hair-canvas');
   if (!canvas) return null;
   const ctx = canvas.getContext('2d');
-  const canvasWrapper = canvas.parentElement;
   
   // Controls & UI
-  const styleSelect = document.getElementById('hair-style');
-  const lengthSlider = document.getElementById('hair-length');
   const colorSlider = document.getElementById('hair-color');
-  const windSlider = document.getElementById('wind-speed');
-  const bioOverlayCheckbox = document.getElementById('biometric-overlay');
-  const resetBtn = document.getElementById('reset-hair-btn');
   const scannerBeam = document.getElementById('scanner-beam');
-  
-  const lengthVal = document.getElementById('hair-length-val');
   const colorVal = document.getElementById('hair-color-val');
-  const windVal = document.getElementById('wind-speed-val');
   const colorVectorText = document.getElementById('color-vector-desc');
-  const telemetryStrands = document.getElementById('telemetry-strands');
-  const fpsTelemetry = document.getElementById('rendering-telemetry');
   const modeTelemetry = document.getElementById('telemetry-mode');
 
   // Webcam & Overlay UI
@@ -232,11 +221,7 @@ function init3DStylingLab() {
   const webcamStream = document.getElementById('webcam-stream');
   const alignmentBox = document.getElementById('alignment-controls-box');
   const sliderScale = document.getElementById('face-img-scale');
-  const sliderX = document.getElementById('face-img-x');
-  const sliderY = document.getElementById('face-img-y');
   const labelScale = document.getElementById('img-scale-val');
-  const labelX = document.getElementById('img-x-val');
-  const labelY = document.getElementById('img-y-val');
   const btnRemovePortrait = document.getElementById('btn-remove-portrait');
   const btnCaptureSnapshot = document.getElementById('btn-capture-snapshot');
   const cameraFlash = document.getElementById('camera-flash-effect');
@@ -244,11 +229,88 @@ function init3DStylingLab() {
   // Overlay state variables
   let overlayImage = null; // HTMLVideoElement or HTMLImageElement
   let isVideoOverlay = false;
-  let overlayScale = 1.0;
-  let overlayOffsetX = 0;
-  let overlayOffsetY = 0;
   let streamObject = null;
+  
+  // Hairstyle Sticker variables
   let activeStyleName = 'bob';
+  let hairOffsetX = canvas.width / 2;
+  let hairOffsetY = canvas.height / 2 - 20;
+  let hairScale = 1.0;
+  let hairHue = 330;
+
+  // Lookbook metadata
+  const lookbookData = {
+    bob: {
+      title: "Sleek French Bob",
+      desc: "An architectural classic bob cut with clean lines that frame the cheekbones. Perfect for a sharp, modern appearance.",
+      face: "Oval, Heart, Square",
+      maintenance: "Medium",
+      texture: "Straight, Fine",
+      price: "R 650",
+      stylist: "David Jenkins"
+    },
+    pixie: {
+      title: "Chic Pixie Crop",
+      desc: "A short, low-maintenance crop with textured, organic layers that emphasize facial symmetry.",
+      face: "Oval, Round, Heart",
+      maintenance: "Low",
+      texture: "Straight, Wavy",
+      price: "R 580",
+      stylist: "David Jenkins"
+    },
+    waves: {
+      title: "Rose Gold Beach Waves",
+      desc: "Voluminous, hand-painted balayage curls with relaxed movement. Ideal for active lifestyles.",
+      face: "Oval, Diamond, Long",
+      maintenance: "Medium-High",
+      texture: "Wavy, Thick",
+      price: "R 1,850",
+      stylist: "Michael Thabo"
+    },
+    afro: {
+      title: "High-Volume Afro Coils",
+      desc: "A sculpted halo celebrating rich, natural texture and dimensional coils with custom shape framing.",
+      face: "Round, Square, Heart",
+      maintenance: "Medium",
+      texture: "Coily, Afro",
+      price: "R 750",
+      stylist: "Sophia Martinez"
+    },
+    curly: {
+      title: "Long Layered Curls",
+      desc: "Bouncy, elongated spirals with soft layered texturing that provides organic volume and bounce.",
+      face: "Long, Oval, Heart",
+      maintenance: "High",
+      texture: "Curly, Thick",
+      price: "R 1,100",
+      stylist: "Michael Thabo"
+    }
+  };
+
+  // Set default details
+  updateLookbookDetails('bob');
+
+  function updateLookbookDetails(styleKey) {
+    const data = lookbookData[styleKey];
+    if (!data) return;
+
+    const titleEl = document.getElementById('lookbook-title');
+    const descEl = document.getElementById('lookbook-desc');
+    const faceEl = document.getElementById('spec-face');
+    const maintEl = document.getElementById('spec-maintenance');
+    const textureEl = document.getElementById('spec-texture');
+    const priceEl = document.getElementById('spec-price');
+
+    if (titleEl) titleEl.textContent = data.title;
+    if (descEl) descEl.textContent = data.desc;
+    if (faceEl) faceEl.textContent = data.face;
+    if (maintEl) maintEl.textContent = data.maintenance;
+    if (textureEl) textureEl.textContent = data.texture;
+    if (priceEl) priceEl.textContent = data.price;
+
+    globalBookingState.service = data.title;
+    globalBookingState.price = data.price;
+  }
 
   // Carousel click card listeners
   const carouselCards = document.querySelectorAll('.carousel-card');
@@ -258,30 +320,96 @@ function init3DStylingLab() {
       card.classList.add('active');
 
       activeStyleName = card.getAttribute('data-style') || 'bob';
-      const preset = card.getAttribute('data-preset') || 'straight';
-      const len = parseFloat(card.getAttribute('data-length') || '4.5');
       const hue = parseInt(card.getAttribute('data-hue') || '330');
 
-      if (styleSelect) styleSelect.value = preset;
-      if (lengthSlider) lengthSlider.value = len;
-      if (colorSlider) colorSlider.value = hue;
-
-      generateHairData();
+      if (colorSlider) {
+        colorSlider.value = hue;
+        colorSlider.dispatchEvent(new Event('input'));
+      }
+      
+      updateLookbookDetails(activeStyleName);
     });
   });
 
-  // Setup alignment values change listeners
+  // Setup scale slider listener
   sliderScale?.addEventListener('input', (e) => {
-    overlayScale = parseFloat(e.target.value);
-    if (labelScale) labelScale.textContent = `${overlayScale.toFixed(2)}x`;
+    hairScale = parseFloat(e.target.value);
+    if (labelScale) labelScale.textContent = `${hairScale.toFixed(2)}x`;
   });
-  sliderX?.addEventListener('input', (e) => {
-    overlayOffsetX = parseInt(e.target.value);
-    if (labelX) labelX.textContent = `${overlayOffsetX} px`;
+
+  // Setup color slider listener
+  colorSlider?.addEventListener('input', (e) => {
+    hairHue = parseInt(e.target.value);
+    
+    // Update color label
+    if (colorVal) {
+      let colorName = "Warm Copper";
+      if (hairHue >= 320 || hairHue < 15) colorName = "Rose Gold";
+      else if (hairHue >= 15 && hairHue < 45) colorName = "Golden Copper";
+      else if (hairHue >= 45 && hairHue < 90) colorName = "Honey Blonde";
+      else if (hairHue >= 90 && hairHue < 170) colorName = "Jade Mint";
+      else if (hairHue >= 170 && hairHue < 250) colorName = "Ice Balayage";
+      else if (hairHue >= 250 && hairHue < 320) colorName = "Ultra Violet";
+      colorVal.textContent = `${hairHue}° (${colorName})`;
+      if (colorVectorText) {
+        colorVectorText.textContent = `HSL(${hairHue}°, 85%, 55%)`;
+      }
+    }
   });
-  sliderY?.addEventListener('input', (e) => {
-    overlayOffsetY = parseInt(e.target.value);
-    if (labelY) labelY.textContent = `${overlayOffsetY} px`;
+
+  // Direct Drag-to-Position on Canvas
+  let isDraggingHair = false;
+  let dragStart = { x: 0, y: 0 };
+  
+  canvas.addEventListener('mousedown', (e) => {
+    const rect = canvas.getBoundingClientRect();
+    const mx = e.clientX - rect.left;
+    const my = e.clientY - rect.top;
+    
+    isDraggingHair = true;
+    dragStart.x = mx - hairOffsetX;
+    dragStart.y = my - hairOffsetY;
+  });
+  
+  canvas.addEventListener('mousemove', (e) => {
+    if (!isDraggingHair) return;
+    const rect = canvas.getBoundingClientRect();
+    const mx = e.clientX - rect.left;
+    const my = e.clientY - rect.top;
+    
+    hairOffsetX = mx - dragStart.x;
+    hairOffsetY = my - dragStart.y;
+  });
+  
+  canvas.addEventListener('mouseup', () => {
+    isDraggingHair = false;
+  });
+  canvas.addEventListener('mouseleave', () => {
+    isDraggingHair = false;
+  });
+  
+  // Touch support for mobile devices
+  canvas.addEventListener('touchstart', (e) => {
+    if (e.touches.length === 1) {
+      const rect = canvas.getBoundingClientRect();
+      const mx = e.touches[0].clientX - rect.left;
+      const my = e.touches[0].clientY - rect.top;
+      isDraggingHair = true;
+      dragStart.x = mx - hairOffsetX;
+      dragStart.y = my - hairOffsetY;
+    }
+  });
+  canvas.addEventListener('touchmove', (e) => {
+    if (!isDraggingHair || e.touches.length !== 1) return;
+    const rect = canvas.getBoundingClientRect();
+    const mx = e.touches[0].clientX - rect.left;
+    const my = e.touches[0].clientY - rect.top;
+    hairOffsetX = mx - dragStart.x;
+    hairOffsetY = my - dragStart.y;
+    e.preventDefault();
+  });
+  canvas.addEventListener('touchend', () => {
+    isDraggingHair = false;
   });
 
   // Activate Camera streaming
@@ -360,19 +488,15 @@ function init3DStylingLab() {
     btnUpload?.classList.remove('active');
     if (alignmentBox) alignmentBox.style.display = 'none';
 
-    // Reset slider controls
-    overlayScale = 1.0;
-    overlayOffsetX = 0;
-    overlayOffsetY = 0;
+    // Reset position and scale
+    hairOffsetX = canvas.width / 2;
+    hairOffsetY = canvas.height / 2 - 20;
+    hairScale = 1.0;
     if (sliderScale) sliderScale.value = 1.0;
-    if (sliderX) sliderX.value = 0;
-    if (sliderY) sliderY.value = 0;
     if (labelScale) labelScale.textContent = '1.00x';
-    if (labelX) labelX.textContent = '0 px';
-    if (labelY) labelY.textContent = '0 px';
   }
 
-  // Capture current styling template snapshot
+  // Capture snapshot
   btnCaptureSnapshot?.addEventListener('click', () => {
     if (cameraFlash) {
       cameraFlash.classList.add('flash-active');
@@ -384,15 +508,8 @@ function init3DStylingLab() {
     globalBookingState.capturedImage = dataURL;
 
     // Create recipe string
-    const style = styleSelect?.value || 'straight';
-    const length = lengthSlider ? parseFloat(lengthSlider.value).toFixed(1) : '4.5';
-    const color = colorSlider ? colorSlider.value : '330';
-    let cutCount = 0;
-    hairStrands.forEach(s => {
-      if (s.maxSteps < 12) cutCount++;
-    });
-    
-    globalBookingState.styleRecipe = `Style: ${style.toUpperCase()}, Length: ${length}dm, Hue: ${color}°, Trims: ${cutCount} strands`;
+    const styleData = lookbookData[activeStyleName] || {};
+    globalBookingState.styleRecipe = `Style: ${styleData.title || activeStyleName.toUpperCase()}, Color Hue: ${hairHue}°, Price: ${styleData.price || 'R 650'}`;
 
     // Open chat drawer and notify user
     const drawer = document.getElementById('chat-drawer');
@@ -410,558 +527,328 @@ function init3DStylingLab() {
         const msg = document.createElement('div');
         msg.id = id;
         msg.className = 'chat-bubble bot-message';
-        msg.innerHTML = `<p><strong>📸 Custom Styling Captured!</strong><br>` +
-                        `I've saved your blueprint: <br><i>${globalBookingState.styleRecipe}</i><br><br>` +
-                        `When you book, I will generate a downloadable Stylist Receipt Card with your portrait for your appointment!</p>`;
+        msg.innerHTML = `<p><strong>📸 Style Blueprint Captured!</strong><br>` +
+                        `I've saved your custom look: <br><i>${globalBookingState.styleRecipe}</i><br><br>` +
+                        `When you book, I will generate a downloadable Stylist Receipt Card with your portrait and selected style specifications!</p>`;
         chatMessages.appendChild(msg);
         chatMessages.scrollTop = chatMessages.scrollHeight;
       }
     }
   });
 
-  // Interactive Tools selection
-  let currentTool = 'rotate'; // rotate, scissor, comb
-  const toolRotate = document.getElementById('tool-rotate');
-  const toolScissor = document.getElementById('tool-scissor');
-  const toolComb = document.getElementById('tool-comb');
+  // Vector hair silhouettes drawing function
+  function drawHairstyle(ctx, type, cx, cy, sc, h) {
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.scale(sc, sc);
 
-  function setTool(tool) {
-    currentTool = tool;
-    // Update active classes
-    [toolRotate, toolScissor, toolComb].forEach(btn => btn?.classList.remove('active'));
-    canvasWrapper.className = 'canvas-wrapper';
-    
-    if (tool === 'rotate') {
-      toolRotate?.classList.add('active');
-      if (modeTelemetry) modeTelemetry.textContent = 'Camera Rotate';
-      const helper = document.getElementById('viewport-helper');
-      if (helper) helper.textContent = 'Click & Drag to Rotate Model';
-    } else if (tool === 'scissor') {
-      toolScissor?.classList.add('active');
-      canvasWrapper.classList.add('cursor-scissor');
-      if (modeTelemetry) modeTelemetry.textContent = 'Interactive Cut';
-      const helper = document.getElementById('viewport-helper');
-      if (helper) helper.textContent = 'Click & Drag over Hair to Trim';
-    } else if (tool === 'comb') {
-      toolComb?.classList.add('active');
-      canvasWrapper.classList.add('cursor-comb');
-      if (modeTelemetry) modeTelemetry.textContent = 'Interactive Style';
-      const helper = document.getElementById('viewport-helper');
-      if (helper) helper.textContent = 'Click & Drag to Brush Strands';
-    }
-  }
+    // Create HSL colors
+    const baseColor = `hsla(${h}, 50%, 15%, 0.88)`;
+    const highlightColor1 = `hsla(${h}, 85%, 50%, 0.6)`;
+    const highlightColor2 = `hsla(${(h + 20) % 360}, 90%, 65%, 0.5)`;
+    const shadowColor = `rgba(0, 0, 0, 0.4)`;
 
-  [
-    { btn: toolRotate, type: 'rotate' },
-    { btn: toolScissor, type: 'scissor' },
-    { btn: toolComb, type: 'comb' }
-  ].forEach(item => {
-    item.btn?.addEventListener('click', () => setTool(item.type));
-  });
+    ctx.shadowColor = shadowColor;
+    ctx.shadowBlur = 15;
 
-  // Projection math vars
-  let yaw = 0.5;
-  let pitch = 0.2;
-  let isDragging = false;
-  let lastMouseX = 0;
-  let lastMouseY = 0;
-  let spinVelocityX = 0.005;
-  let spinVelocityY = 0;
+    if (type === 'bob') {
+      // 1. Base shape
+      ctx.beginPath();
+      ctx.fillStyle = baseColor;
+      ctx.moveTo(-70, 70);
+      ctx.lineTo(-75, -20);
+      ctx.bezierCurveTo(-75, -110, 75, -110, 75, -20);
+      ctx.lineTo(70, 70);
+      ctx.quadraticCurveTo(60, 85, 50, 80);
+      ctx.lineTo(48, 20);
+      ctx.bezierCurveTo(20, 25, -20, 25, -48, 20);
+      ctx.lineTo(-50, 80);
+      ctx.quadraticCurveTo(-60, 85, -70, 70);
+      ctx.closePath();
+      ctx.fill();
 
-  const scale = 140;
-  const distance = 4;
-  const centerX = canvas.width / 2;
-  const centerY = canvas.height / 2 - 20;
+      // 2. Highlights pass
+      ctx.shadowColor = "transparent";
+      ctx.shadowBlur = 0;
+      ctx.lineWidth = 2;
 
-  // Generate biometric face vertices
-  const headVertices = [];
-  const headLines = [];
-
-  for (let lat = 0; lat < 12; lat++) {
-    const theta = (lat * Math.PI) / 12;
-    const sinTheta = Math.sin(theta);
-    const cosTheta = Math.cos(theta);
-    const y = cosTheta * 1.1;
-    
-    const circleStartIndex = headVertices.length;
-    for (let lon = 0; lon < 16; lon++) {
-      const phi = (lon * 2 * Math.PI) / 16;
-      const x = sinTheta * Math.cos(phi) * 0.95;
-      const z = sinTheta * Math.sin(phi) * 0.95;
-      headVertices.push({ x, y, z });
-      
-      const curr = circleStartIndex + lon;
-      const next = circleStartIndex + ((lon + 1) % 16);
-      headLines.push([curr, next]);
-      if (lat > 0) {
-        headLines.push([curr, curr - 16]);
+      // Vertical strands
+      for (let i = -65; i <= 65; i += 6) {
+        ctx.beginPath();
+        ctx.strokeStyle = i % 12 === 0 ? highlightColor1 : highlightColor2;
+        ctx.moveTo(i * 0.8, -85);
+        ctx.bezierCurveTo(i, -30, i, 30, i * 1.05, 72);
+        ctx.stroke();
       }
-    }
-  }
 
-  // Biometric extra details (nose bridge, eyes, symmetry lines)
-  const faceDetails = [
-    // Left eye circle
-    [{ x: -0.25, y: 0.15, z: 0.8 }, { x: -0.35, y: 0.2, z: 0.75 }, { x: -0.4, y: 0.15, z: 0.75 }, { x: -0.3, y: 0.1, z: 0.8 }, { x: -0.25, y: 0.15, z: 0.8 }],
-    // Right eye circle
-    [{ x: 0.25, y: 0.15, z: 0.8 }, { x: 0.35, y: 0.2, z: 0.75 }, { x: 0.4, y: 0.15, z: 0.75 }, { x: 0.3, y: 0.1, z: 0.8 }, { x: 0.25, y: 0.15, z: 0.8 }],
-    // Nose bridge
-    [{ x: 0, y: 0.25, z: 0.85 }, { x: 0, y: -0.1, z: 0.95 }, { x: -0.1, y: -0.15, z: 0.9 }, { x: 0.1, y: -0.15, z: 0.9 }, { x: 0, y: -0.1, z: 0.95 }],
-    // Mouth contour
-    [{ x: -0.2, y: -0.4, z: 0.85 }, { x: 0, y: -0.35, z: 0.9 }, { x: 0.2, y: -0.4, z: 0.85 }, { x: 0, y: -0.45, z: 0.9 }, { x: -0.2, y: -0.4, z: 0.85 }]
-  ];
+      // Bangs
+      for (let i = -40; i <= 40; i += 4) {
+        ctx.beginPath();
+        ctx.strokeStyle = highlightColor2;
+        ctx.moveTo(i * 0.5, -80);
+        ctx.quadraticCurveTo(i * 0.8, -30, i, 20);
+        ctx.stroke();
+      }
 
-  // Initialize hair roots
-  const hairRoots = [];
-  for (let lat = 1; lat < 6; lat++) {
-    const theta = (lat * Math.PI) / 12;
-    const sinTheta = Math.sin(theta);
-    const cosTheta = Math.cos(theta);
-    const y = cosTheta * 1.15;
+    } else if (type === 'pixie') {
+      // Pixie Crop
+      ctx.beginPath();
+      ctx.fillStyle = baseColor;
+      ctx.moveTo(-60, 20);
+      ctx.lineTo(-65, -15);
+      ctx.bezierCurveTo(-60, -95, 60, -95, 65, -15);
+      ctx.lineTo(60, 20);
+      ctx.lineTo(50, 5);
+      ctx.bezierCurveTo(25, 0, -25, 0, -50, 5);
+      ctx.closePath();
+      ctx.fill();
 
-    for (let lon = 0; lon < 24; lon++) {
-      const phi = (lon * 2 * Math.PI) / 24;
-      const x = sinTheta * Math.cos(phi) * 1.0;
-      const z = sinTheta * Math.sin(phi) * 1.0;
+      // Feathers / strands
+      ctx.shadowColor = "transparent";
+      ctx.shadowBlur = 0;
+      ctx.lineWidth = 2.5;
       
-      const angle = Math.atan2(z, x);
-      if (angle > -0.7 && angle < 0.7) continue; // Face area cutout
-      
-      hairRoots.push({ x, y, z });
-    }
-  }
-
-  // Dynamic state for each hair strand
-  let hairStrands = [];
-  function generateHairData() {
-    hairStrands = hairRoots.map((root, index) => {
-      return {
-        root: { ...root },
-        maxSteps: 12,
-        combOffset: { x: 0, y: 0, z: 0 },
-        index: index
-      };
-    });
-    if (telemetryStrands) telemetryStrands.textContent = hairStrands.length;
-  }
-  generateHairData();
-
-  if (resetBtn) {
-    resetBtn.addEventListener('click', () => {
-      generateHairData();
-    });
-  }
-
-  // Mouse & tool drag events
-  canvas.addEventListener('mousedown', (e) => {
-    isDragging = true;
-    const rect = canvas.getBoundingClientRect();
-    lastMouseX = e.clientX - rect.left;
-    lastMouseY = e.clientY - rect.top;
-    spinVelocityX = 0;
-    spinVelocityY = 0;
-  });
-
-  window.addEventListener('mouseup', () => {
-    isDragging = false;
-  });
-
-  canvas.addEventListener('mousemove', (e) => {
-    if (!isDragging) return;
-    const rect = canvas.getBoundingClientRect();
-    const mouseX = e.clientX - rect.left;
-    const mouseY = e.clientY - rect.top;
-    const deltaX = mouseX - lastMouseX;
-    const deltaY = mouseY - lastMouseY;
-
-    if (currentTool === 'rotate') {
-      yaw += deltaX * 0.007;
-      pitch += deltaY * 0.007;
-      pitch = Math.max(-1.2, Math.min(1.2, pitch));
-      spinVelocityX = deltaX * 0.0015;
-      spinVelocityY = deltaY * 0.0015;
-    } else if (currentTool === 'scissor') {
-      trimHairAtPoint(mouseX, mouseY);
-    } else if (currentTool === 'comb') {
-      combHairAtPoint(mouseX, mouseY, deltaX, deltaY);
-    }
-
-    lastMouseX = mouseX;
-    lastMouseY = mouseY;
-  });
-
-  // Touch Support
-  canvas.addEventListener('touchstart', (e) => {
-    if (e.touches.length === 1) {
-      isDragging = true;
-      const rect = canvas.getBoundingClientRect();
-      lastMouseX = e.touches[0].clientX - rect.left;
-      lastMouseY = e.touches[0].clientY - rect.top;
-      spinVelocityX = 0;
-      spinVelocityY = 0;
-    }
-  });
-
-  canvas.addEventListener('touchend', () => {
-    isDragging = false;
-  });
-
-  canvas.addEventListener('touchmove', (e) => {
-    if (!isDragging || e.touches.length !== 1) return;
-    const rect = canvas.getBoundingClientRect();
-    const mouseX = e.touches[0].clientX - rect.left;
-    const mouseY = e.touches[0].clientY - rect.top;
-    const deltaX = mouseX - lastMouseX;
-    const deltaY = mouseY - lastMouseY;
-
-    if (currentTool === 'rotate') {
-      yaw += deltaX * 0.007;
-      pitch += deltaY * 0.007;
-      pitch = Math.max(-1.2, Math.min(1.2, pitch));
-      spinVelocityX = deltaX * 0.0015;
-      spinVelocityY = deltaY * 0.0015;
-    } else if (currentTool === 'scissor') {
-      trimHairAtPoint(mouseX, mouseY);
-    } else if (currentTool === 'comb') {
-      combHairAtPoint(mouseX, mouseY, deltaX, deltaY);
-    }
-
-    lastMouseX = mouseX;
-    lastMouseY = mouseY;
-  });
-
-  function rotate3D(point, yawAngle, pitchAngle) {
-    const x1 = point.x * Math.cos(yawAngle) - point.z * Math.sin(yawAngle);
-    const z1 = point.x * Math.sin(yawAngle) + point.z * Math.cos(yawAngle);
-    const y2 = point.y * Math.cos(pitchAngle) - z1 * Math.sin(pitchAngle);
-    const z2 = point.y * Math.sin(pitchAngle) + z1 * Math.cos(pitchAngle);
-    return { x: x1, y: y2, z: z2 };
-  }
-
-  function project(point) {
-    const rotated = rotate3D(point, yaw, pitch);
-    const denom = rotated.z + distance;
-    const screenX = centerX + (rotated.x * scale) / denom;
-    const screenY = centerY - (rotated.y * scale) / denom;
-    return { x: screenX, y: screenY, z: rotated.z };
-  }
-
-  // Scissor cut logic
-  function trimHairAtPoint(mx, my) {
-    const length = parseFloat(lengthSlider.value);
-    const style = styleSelect.value;
-    const steps = style === 'afro' ? 8 : 12;
-
-    hairStrands.forEach((strand) => {
-      for (let step = 1; step <= strand.maxSteps; step++) {
-        const segmentPct = step / steps;
-        let dy = -length * 0.12 * segmentPct;
-        if (style === 'afro') dy = -length * 0.04 * segmentPct;
-
-        const node3D = {
-          x: strand.root.x + strand.combOffset.x,
-          y: strand.root.y + dy + strand.combOffset.y,
-          z: strand.root.z + strand.combOffset.z
-        };
-
-        const proj = project(node3D);
-        const dist = Math.sqrt((proj.x - mx) ** 2 + (proj.y - my) ** 2);
-        
-        if (dist < 16 && step < strand.maxSteps) {
-          strand.maxSteps = Math.max(1, step - 1);
-          break;
+      // Draw layered hair strokes
+      for (let r = 20; r < 80; r += 15) {
+        for (let a = -Math.PI + 0.2; a < -0.2; a += 0.25) {
+          const x1 = Math.cos(a) * (r - 10);
+          const y1 = Math.sin(a) * (r - 10) - 20;
+          const x2 = Math.cos(a + 0.1) * r;
+          const y2 = Math.sin(a + 0.1) * r - 20;
+          
+          ctx.beginPath();
+          ctx.strokeStyle = a % 0.5 < 0.25 ? highlightColor1 : highlightColor2;
+          ctx.moveTo(x1, y1);
+          ctx.lineTo(x2, y2);
+          ctx.stroke();
         }
       }
-    });
-  }
 
-  // Combing push logic
-  function combHairAtPoint(mx, my, dx, dy) {
-    const length = parseFloat(lengthSlider.value);
-    const style = styleSelect.value;
-    const steps = style === 'afro' ? 8 : 12;
-
-    hairStrands.forEach((strand) => {
-      const segmentPct = strand.maxSteps / steps;
-      let targetY = -length * 0.12 * segmentPct;
-      if (style === 'afro') targetY = -length * 0.04 * segmentPct;
-
-      const node3D = {
-        x: strand.root.x + strand.combOffset.x,
-        y: strand.root.y + targetY + strand.combOffset.y,
-        z: strand.root.z + strand.combOffset.z
-      };
-
-      const proj = project(node3D);
-      const dist = Math.sqrt((proj.x - mx) ** 2 + (proj.y - my) ** 2);
-      
-      if (dist < 32) {
-        const factor = 0.003;
-        strand.combOffset.x += dx * factor;
-        strand.combOffset.y -= dy * factor;
+      // Textured bangs points
+      for (let i = -45; i <= 45; i += 6) {
+        ctx.beginPath();
+        ctx.strokeStyle = highlightColor2;
+        ctx.moveTo(i * 0.8, -60);
+        ctx.lineTo(i, 8 + Math.sin(i * 0.5) * 4);
+        ctx.stroke();
       }
-    });
+
+    } else if (type === 'waves') {
+      // Beach Waves
+      ctx.beginPath();
+      ctx.fillStyle = baseColor;
+      ctx.moveTo(-85, 170);
+      // Wave up
+      ctx.bezierCurveTo(-65, 120, -85, 70, -70, -20);
+      ctx.bezierCurveTo(-70, -115, 70, -115, 70, -20);
+      ctx.bezierCurveTo(85, 70, 65, 120, 85, 170);
+      ctx.quadraticCurveTo(70, 180, 55, 160);
+      ctx.bezierCurveTo(45, 110, 55, 60, 45, 30);
+      ctx.bezierCurveTo(20, 35, -20, 35, -45, 30);
+      ctx.bezierCurveTo(-55, 60, -45, 110, -55, 160);
+      ctx.quadraticCurveTo(-70, 180, -85, 170);
+      ctx.closePath();
+      ctx.fill();
+
+      // Draw wavy strands
+      ctx.shadowColor = "transparent";
+      ctx.shadowBlur = 0;
+      ctx.lineWidth = 2;
+
+      for (let offset = -75; offset <= 75; offset += 10) {
+        if (Math.abs(offset) < 15) continue; // Face gap
+        
+        ctx.beginPath();
+        ctx.strokeStyle = offset % 20 === 0 ? highlightColor1 : highlightColor2;
+        
+        let startX = offset * 0.8;
+        let startY = -80;
+        ctx.moveTo(startX, startY);
+        
+        for (let y = -70; y <= 165; y += 10) {
+          const waveX = startX + Math.sin(y * 0.05 + offset) * 12;
+          ctx.lineTo(waveX, y);
+        }
+        ctx.stroke();
+      }
+
+      // Top bangs waves
+      for (let i = -30; i <= 30; i += 6) {
+        ctx.beginPath();
+        ctx.strokeStyle = highlightColor2;
+        ctx.moveTo(i * 0.3, -80);
+        ctx.quadraticCurveTo(i, -40, i * 1.3, 20);
+        ctx.stroke();
+      }
+
+    } else if (type === 'afro') {
+      // Afro Coils - Large puffy sphere shape
+      ctx.beginPath();
+      ctx.fillStyle = baseColor;
+      
+      const c_x = 0;
+      const c_y = -20;
+      const radius = 100;
+      
+      ctx.moveTo(radius, c_y);
+      for (let angle = 0; angle <= Math.PI * 2; angle += 0.15) {
+        const x = c_x + Math.cos(angle) * radius;
+        const y = c_y + Math.sin(angle) * radius;
+        const puffX = x + Math.cos(angle * 6) * 8;
+        const puffY = y + Math.sin(angle * 6) * 8;
+        ctx.lineTo(puffX, puffY);
+      }
+      ctx.closePath();
+      ctx.fill();
+
+      // Hair highlights - drawing curly coils
+      ctx.shadowColor = "transparent";
+      ctx.shadowBlur = 0;
+      ctx.lineWidth = 1.5;
+
+      const coilsCount = 120;
+      for (let i = 0; i < coilsCount; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const dist = Math.random() * 90;
+        const x = Math.cos(angle) * dist;
+        const y = Math.sin(angle) * dist - 20;
+
+        if (Math.abs(x) < 35 && y > -10 && y < 60) continue;
+
+        ctx.beginPath();
+        ctx.strokeStyle = i % 3 === 0 ? highlightColor1 : highlightColor2;
+        ctx.arc(x, y, 4 + Math.random() * 5, 0, Math.PI * 1.5 + Math.random() * Math.PI);
+        ctx.stroke();
+      }
+
+    } else if (type === 'curly') {
+      // Long Layered Curls
+      ctx.beginPath();
+      ctx.fillStyle = baseColor;
+      ctx.moveTo(-80, 160);
+      ctx.bezierCurveTo(-70, 70, -80, 10, -65, -30);
+      ctx.bezierCurveTo(-65, -110, 65, -110, 65, -30);
+      ctx.bezierCurveTo(80, 10, 70, 70, 80, 160);
+      ctx.quadraticCurveTo(65, 170, 50, 150);
+      ctx.bezierCurveTo(45, 80, 45, 30, 40, 20);
+      ctx.bezierCurveTo(15, 25, -15, 25, -40, 20);
+      ctx.bezierCurveTo(-45, 80, -45, 30, -50, 150);
+      ctx.quadraticCurveTo(-65, 170, -80, 160);
+      ctx.closePath();
+      ctx.fill();
+
+      // Highlights: spiral ribbons
+      ctx.shadowColor = "transparent";
+      ctx.shadowBlur = 0;
+      ctx.lineWidth = 1.8;
+
+      for (let offset = -70; offset <= 70; offset += 12) {
+        if (Math.abs(offset) < 18) continue; // Skip face gap
+        
+        ctx.beginPath();
+        ctx.strokeStyle = offset % 24 === 0 ? highlightColor1 : highlightColor2;
+        
+        let cx_pos = offset * 0.85;
+        let cy_pos = -75;
+        ctx.moveTo(cx_pos, cy_pos);
+        
+        for (let y = -70; y <= 150; y += 8) {
+          const curlX = cx_pos + Math.sin(y * 0.3) * 8;
+          ctx.lineTo(curlX, y);
+        }
+        ctx.stroke();
+      }
+
+      // Front curls around face
+      for (let i = -30; i <= 30; i += 8) {
+        ctx.beginPath();
+        ctx.strokeStyle = highlightColor2;
+        ctx.moveTo(i * 0.4, -75);
+        ctx.quadraticCurveTo(i, -30, i * 1.2, 15);
+        ctx.stroke();
+      }
+    }
+
+    ctx.restore();
   }
 
-  // Animation Loop variables
+  // Draw loop
   let time = 0;
-  let lastTime = performance.now();
-  let frames = 0;
-
   function draw() {
     time += 0.04;
-    frames++;
-    const now = performance.now();
-    if (now - lastTime >= 1000) {
-      if (fpsTelemetry) fpsTelemetry.textContent = `FPS: ${frames}`;
-      frames = 0;
-      lastTime = now;
-    }
-
-    // Passive spin
-    if (!isDragging) {
-      yaw += spinVelocityX;
-      pitch += spinVelocityY;
-      spinVelocityX *= 0.95;
-      spinVelocityY *= 0.95;
-      if (Math.abs(spinVelocityX) < 0.0001) {
-        spinVelocityX = 0.0012; // slow passive scan spin
-      }
-    }
-
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     // DRAW PORTRAIT IMAGE BACKDROP IF ACTIVE
     if (overlayImage) {
-      const destW = canvas.width * overlayScale;
-      const destH = canvas.height * overlayScale;
-      const destX = (canvas.width - destW) / 2 + overlayOffsetX;
-      const destY = (canvas.height - destH) / 2 + overlayOffsetY;
-      ctx.drawImage(overlayImage, destX, destY, destW, destH);
-    }
-
-    const length = parseFloat(lengthSlider.value);
-    const hue = parseInt(colorSlider.value);
-    const style = styleSelect.value;
-    const windSpeed = parseFloat(windSlider.value);
-    const showBiometrics = bioOverlayCheckbox.checked;
-
-    // Update text labels
-    if (lengthVal) lengthVal.textContent = `${length.toFixed(1)} dm`;
-    if (windVal) windVal.textContent = `${windSpeed.toFixed(1)} m/s`;
-    
-    if (colorVal) {
-      let colorName = "Warm Copper";
-      if (hue >= 320 || hue < 15) colorName = "Rose Gold";
-      else if (hue >= 15 && hue < 45) colorName = "Golden Copper";
-      else if (hue >= 45 && hue < 90) colorName = "Honey Blonde";
-      else if (hue >= 90 && hue < 170) colorName = "Jade Mint";
-      else if (hue >= 170 && hue < 250) colorName = "Ice Balayage";
-      else if (hue >= 250 && hue < 320) colorName = "Ultra Violet";
-      colorVal.textContent = `${hue}° (${colorName})`;
-      if (colorVectorText) {
-        colorVectorText.textContent = `HSL(${hue}°, 85%, 55%)`;
-      }
-    }
-
-    // Scan beam toggle
-    if (showBiometrics) {
-      scannerBeam?.classList.add('scanning');
+      ctx.drawImage(overlayImage, 0, 0, canvas.width, canvas.height);
     } else {
-      scannerBeam?.classList.remove('scanning');
-    }
-
-     // Draw Face Wireframe (Only draw if no portrait uploaded, or if biometrics is on)
-    if (!overlayImage || showBiometrics) {
-      ctx.beginPath();
-      ctx.strokeStyle = document.documentElement.getAttribute('data-theme') === 'light' 
-        ? 'rgba(9, 8, 18, 0.07)' 
-        : 'rgba(212, 163, 115, 0.08)';
-      ctx.lineWidth = 1;
+      ctx.fillStyle = '#100e17';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
       
-      headLines.forEach(([i, j]) => {
-        const p1 = project(headVertices[i]);
-        const p2 = project(headVertices[j]);
-        if (p1.z > -0.8 && p2.z > -0.8) {
-          ctx.moveTo(p1.x, p1.y);
-          ctx.lineTo(p2.x, p2.y);
-        }
-      });
+      ctx.fillStyle = 'rgba(212, 163, 115, 0.25)';
+      ctx.font = '14px Outfit';
+      ctx.textAlign = 'center';
+      ctx.fillText('[ Photo Backdrop Offline - Style Preview Mode ]', canvas.width / 2, canvas.height / 2 + 50);
+
+      // Draw a beautiful abstract face shape placeholder
+      ctx.beginPath();
+      ctx.strokeStyle = 'rgba(212, 163, 115, 0.15)';
+      ctx.arc(canvas.width / 2, canvas.height / 2 - 20, 75, 0, Math.PI * 2);
       ctx.stroke();
     }
 
-    // Draw Biometric Scans (eye coordinates and alignment grids)
-    if (showBiometrics) {
+    // Draw the style scanner beam line if active
+    if (scannerBeam?.classList.contains('scanning')) {
+      const scanY = (Math.sin(time * 2) * 0.5 + 0.5) * canvas.height;
       ctx.beginPath();
-      ctx.strokeStyle = 'rgba(46, 204, 113, 0.35)'; // Glow biometric green
+      ctx.strokeStyle = 'rgba(212, 163, 115, 0.6)';
+      ctx.lineWidth = 3;
+      ctx.shadowColor = 'var(--accent-gold)';
+      ctx.shadowBlur = 10;
+      ctx.moveTo(0, scanY);
+      ctx.lineTo(canvas.width, scanY);
+      ctx.stroke();
+      ctx.shadowColor = 'transparent';
+      ctx.shadowBlur = 0;
       ctx.lineWidth = 1;
-
-      faceDetails.forEach((shape) => {
-        let first = true;
-        shape.forEach((pt) => {
-          const proj = project(pt);
-          if (proj.z > -0.6) {
-            if (first) {
-              ctx.moveTo(proj.x, proj.y);
-              first = false;
-            } else {
-              ctx.lineTo(proj.x, proj.y);
-            }
-          }
-        });
-      });
-      ctx.stroke();
-
-      // Symmetry vertical line
-      ctx.beginPath();
-      ctx.strokeStyle = 'rgba(46, 204, 113, 0.15)';
-      ctx.setLineDash([5, 5]);
-      const topSym = project({ x: 0, y: 1.1, z: 0.9 });
-      const botSym = project({ x: 0, y: -1.1, z: 0.9 });
-      ctx.moveTo(topSym.x, topSym.y);
-      ctx.lineTo(botSym.x, botSym.y);
-      ctx.stroke();
-      ctx.setLineDash([]);
     }
 
-    // Helper function for custom styled offsets
-    function getHairShapeOffsets(strand, segmentPct) {
-      let dx = 0;
-      let dy = -length * 0.12 * segmentPct;
-      let dz = 0;
-
-      if (activeStyleName === 'bob') {
-        dy = -length * 0.10 * segmentPct;
-        if (segmentPct > 0.7) {
-          const curveFactor = (segmentPct - 0.7) * 3.5;
-          dx = (strand.root.x > 0 ? -0.16 : 0.16) * curveFactor;
-          dz = -0.06 * curveFactor;
-        }
-      } else if (activeStyleName === 'pixie') {
-        dy = -length * 0.05 * segmentPct;
-        dx = Math.sin(segmentPct * 4 + strand.root.x * 2) * 0.04;
-        dz = Math.cos(segmentPct * 4 + strand.root.z * 2) * 0.04;
-      } else if (activeStyleName === 'waves') {
-        dy = -length * 0.12 * segmentPct;
-        dx = Math.sin(segmentPct * 8 + strand.root.x * 3) * 0.15;
-        dz = Math.cos(segmentPct * 6 + strand.root.z * 3) * 0.15;
-      } else if (activeStyleName === 'afro') {
-        dy = -length * 0.05 * segmentPct + Math.cos(segmentPct * 30) * 0.05;
-        dx = Math.sin(segmentPct * 35 + strand.root.x * 8) * 0.08;
-        dz = Math.cos(segmentPct * 35 + strand.root.z * 8) * 0.08;
-      } else if (activeStyleName === 'curly') {
-        dy = -length * 0.13 * segmentPct;
-        dx = Math.sin(segmentPct * 20 + strand.root.x * 4) * 0.12;
-        dz = Math.cos(segmentPct * 20 + strand.root.z * 4) * 0.12;
-      }
-
-      // Wind physics
-      if (windSpeed > 0) {
-        const windOsc = Math.sin(time + strand.root.y * 3 + segmentPct * 2) * 0.04 * windSpeed;
-        dx += windOsc * segmentPct;
-        dz += Math.cos(time * 0.8 + strand.root.x * 2) * 0.03 * windSpeed * segmentPct;
-      }
-
-      return { dx, dy, dz };
-    }
-
-    // Draw Hair Strands
-    const steps = style === 'afro' ? 8 : 12;
-
-    // PASS 1: Thick Solid Volumetric Base
-    hairStrands.forEach((strand) => {
-      ctx.beginPath();
-      ctx.lineWidth = activeStyleName === 'afro' ? 4 : 8;
-
-      let prevProj = project({
-        x: strand.root.x + strand.combOffset.x,
-        y: strand.root.y + strand.combOffset.y,
-        z: strand.root.z + strand.combOffset.z
-      });
-      ctx.moveTo(prevProj.x, prevProj.y);
-
-      for (let step = 1; step <= strand.maxSteps; step++) {
-        const segmentPct = step / steps;
-        const offset = getHairShapeOffsets(strand, segmentPct);
-
-        const node3D = {
-          x: strand.root.x + strand.combOffset.x + offset.dx,
-          y: strand.root.y + strand.combOffset.y + offset.dy,
-          z: strand.root.z + strand.combOffset.z + offset.dz
-        };
-
-        const proj = project(node3D);
-
-        // Darker foundation color with low opacity
-        ctx.strokeStyle = `hsla(${hue}, 65%, 15%, 0.28)`;
-        ctx.lineTo(proj.x, proj.y);
-        ctx.stroke();
-
-        ctx.beginPath();
-        ctx.moveTo(proj.x, proj.y);
-        prevProj = proj;
-      }
-    });
-
-    // PASS 2: Detailed Highlights
-    hairStrands.forEach((strand) => {
-      ctx.beginPath();
-      ctx.lineWidth = activeStyleName === 'afro' ? 1.8 : 1.25;
-
-      let prevProj = project({
-        x: strand.root.x + strand.combOffset.x,
-        y: strand.root.y + strand.combOffset.y,
-        z: strand.root.z + strand.combOffset.z
-      });
-      ctx.moveTo(prevProj.x, prevProj.y);
-
-      for (let step = 1; step <= strand.maxSteps; step++) {
-        const segmentPct = step / steps;
-        const offset = getHairShapeOffsets(strand, segmentPct);
-
-        const node3D = {
-          x: strand.root.x + strand.combOffset.x + offset.dx,
-          y: strand.root.y + strand.combOffset.y + offset.dy,
-          z: strand.root.z + strand.combOffset.z + offset.dz
-        };
-
-        const proj = project(node3D);
-
-        const gradient = ctx.createLinearGradient(prevProj.x, prevProj.y, proj.x, proj.y);
-        gradient.addColorStop(0, `hsla(${hue}, 85%, 38%, ${0.4 + 0.4 * (1 - segmentPct)})`);
-        gradient.addColorStop(1, `hsla(${(hue + 12) % 360}, 95%, 68%, ${0.85 - 0.25 * segmentPct})`);
-
-        ctx.strokeStyle = gradient;
-        ctx.lineTo(proj.x, proj.y);
-        ctx.stroke();
-
-        ctx.beginPath();
-        ctx.moveTo(proj.x, proj.y);
-        prevProj = proj;
-      }
-    });
+    // DRAW THE STICKER HAIRSTYLE OVERLAY
+    drawHairstyle(ctx, activeStyleName, hairOffsetX, hairOffsetY, hairScale, hairHue);
 
     requestAnimationFrame(draw);
   }
-
   draw();
 
   return {
     triggerBiometricScan: (callback) => {
-      bioOverlayCheckbox.checked = true;
       scannerBeam?.classList.add('scanning');
-      spinVelocityX = 0.05;
-      
       setTimeout(() => {
-        spinVelocityX = 0.005;
+        scannerBeam?.classList.remove('scanning');
         if (callback) callback();
       }, 2500);
     },
     updateParameters: (stylePreset, lengthValNum, hueValNum) => {
-      if (styleSelect) styleSelect.value = stylePreset;
-      if (lengthSlider) lengthSlider.value = lengthValNum;
-      if (colorSlider) colorSlider.value = hueValNum;
-      generateHairData();
+      let lookbookKey = 'bob';
+      if (stylePreset === 'straight') lookbookKey = 'bob';
+      else if (stylePreset === 'wavy') lookbookKey = 'waves';
+      else if (stylePreset === 'curly') lookbookKey = 'curly';
+      else if (stylePreset === 'afro' || stylePreset === 'coily') lookbookKey = 'afro';
+
+      const targetCard = Array.from(carouselCards).find(c => c.getAttribute('data-style') === lookbookKey);
+      if (targetCard) {
+        carouselCards.forEach(c => c.classList.remove('active'));
+        targetCard.classList.add('active');
+      }
+
+      activeStyleName = lookbookKey;
+      hairHue = hueValNum || 330;
+      if (colorSlider) {
+        colorSlider.value = hairHue;
+        colorSlider.dispatchEvent(new Event('input'));
+      }
+      
+      updateLookbookDetails(activeStyleName);
     }
   };
 }

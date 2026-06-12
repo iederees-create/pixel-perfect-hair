@@ -128,44 +128,50 @@
     <section id="styling-lab" class="styling-lab-section">
       <div class="container">
         <div class="section-header">
-          <h2>Virtual <span class="text-gradient">3D Styling Lab</span></h2>
-          <p>Interact with our real-time 3D styling simulator. Adjust length, curl parameters, and color hues. Select styling tools to trim or style the wireframe hair directly on the canvas viewport.</p>
+          <h2>Interactive <span class="text-gradient">Hairstyle Lookbook</span></h2>
+          <p>Browse our curated styling lookbook, inspect recommended face shape suitability, and try it on your own face by uploading a photo or using the camera. Drag to position the style overlay directly on the canvas.</p>
         </div>
         
         <div class="lab-grid">
-          <!-- Simulator Controls -->
-          <div class="glass-card lab-controls">
+          <!-- Style Consultation Panel -->
+          <div class="glass-card lab-controls" id="lookbook-details-panel">
             <div class="card-glow"></div>
-            <h3>Style Configuration</h3>
+            <h3 id="lookbook-title">Sleek French Bob</h3>
+            <p id="lookbook-desc" class="lookbook-description" style="font-size: 0.88rem; color: var(--text-muted); line-height: 1.5; margin-bottom: 1.25rem;">An architectural classic bob cut with clean lines that frame the cheekbones. Perfect for a sharp, modern appearance.</p>
             
-            <div class="control-group">
-              <label>Styling Tool</label>
-              <div class="tool-btn-group">
-                <button id="tool-rotate" class="tool-btn active" title="Rotate Model">
-                  <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
-                  <span>Rotate</span>
-                </button>
-                <button id="tool-scissor" class="tool-btn" title="Trim Hair (Click & Drag over Hair)">
-                  <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><line x1="9.8" y1="8.5" x2="20" y2="17"/><line x1="9.8" y1="15.5" x2="20" y2="7"/></svg>
-                  <span>Scissor</span>
-                </button>
-                <button id="tool-comb" class="tool-btn" title="Comb Hair (Click & Drag)">
-                  <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><path d="M3 5h18v4H3zM6 9v8M10 9v8M14 9v8M18 9v8"/></svg>
-                  <span>Comb</span>
-                </button>
+            <!-- Style Specifications Badges -->
+            <div class="style-specs-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 1.5rem;">
+              <div class="spec-badge" style="background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-glass); padding: 0.5rem; border-radius: 8px;">
+                <span class="spec-label" style="display: block; font-size: 0.65rem; color: var(--accent-gold); text-transform: uppercase; letter-spacing: 0.5px;">Ideal Face Shape</span>
+                <strong id="spec-face" class="spec-val" style="display: block; font-size: 0.8rem; margin-top: 0.15rem; color: var(--text-main);">Oval, Heart, Square</strong>
+              </div>
+              <div class="spec-badge" style="background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-glass); padding: 0.5rem; border-radius: 8px;">
+                <span class="spec-label" style="display: block; font-size: 0.65rem; color: var(--accent-gold); text-transform: uppercase; letter-spacing: 0.5px;">Maintenance</span>
+                <strong id="spec-maintenance" class="spec-val" style="display: block; font-size: 0.8rem; margin-top: 0.15rem; color: var(--text-main);">Medium</strong>
+              </div>
+              <div class="spec-badge" style="background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-glass); padding: 0.5rem; border-radius: 8px;">
+                <span class="spec-label" style="display: block; font-size: 0.65rem; color: var(--accent-gold); text-transform: uppercase; letter-spacing: 0.5px;">Best Texture</span>
+                <strong id="spec-texture" class="spec-val" style="display: block; font-size: 0.8rem; margin-top: 0.15rem; color: var(--text-main);">Straight, Fine</strong>
+              </div>
+              <div class="spec-badge" style="background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-glass); padding: 0.5rem; border-radius: 8px;">
+                <span class="spec-label" style="display: block; font-size: 0.65rem; color: var(--accent-gold); text-transform: uppercase; letter-spacing: 0.5px;">Estimated Price</span>
+                <strong id="spec-price" class="spec-val" style="display: block; font-size: 0.8rem; margin-top: 0.15rem; color: var(--text-main);">R 650</strong>
               </div>
             </div>
 
-            <!-- CAMERA OVERLAY SECTION -->
-            <div class="control-group">
-              <label>Portrait Face Overlay</label>
-              <div class="camera-btn-group">
-                <button id="btn-webcam" class="camera-btn" title="Activate Webcam">
-                  <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+            <div class="control-divider" style="height: 1px; background: var(--border-glass); margin: 1.25rem 0;"></div>
+
+            <!-- Portrait Photo Upload Section -->
+            <div class="control-group" style="margin-bottom: 1.25rem;">
+              <label style="display: block; font-size: 0.85rem; font-weight: 600; color: var(--text-main); margin-bottom: 0.35rem;">Add Your Portrait Photo</label>
+              <p class="sub-lbl" style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.75rem; line-height: 1.4;">Snap a photo or upload one to position this hairstyle over your face.</p>
+              <div class="camera-btn-group" style="display: flex; gap: 0.5rem;">
+                <button id="btn-webcam" class="camera-btn" style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 0.35rem; padding: 0.6rem; border-radius: 8px;" title="Activate Webcam">
+                  <svg viewBox="0 0 24 24" width="15" height="15" stroke="currentColor" stroke-width="2" fill="none"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
                   <span>Use Camera</span>
                 </button>
-                <button id="btn-upload" class="camera-btn" title="Upload Photo">
-                  <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+                <button id="btn-upload" class="camera-btn" style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 0.35rem; padding: 0.6rem; border-radius: 8px;" title="Upload Photo">
+                  <svg viewBox="0 0 24 24" width="15" height="15" stroke="currentColor" stroke-width="2" fill="none"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
                   <span>Upload Photo</span>
                 </button>
               </div>
@@ -173,88 +179,37 @@
               <video id="webcam-stream" autoplay playsinline style="display:none;"></video>
             </div>
 
-            <!-- IMAGE ALIGNMENT SLIDERS (Initially hidden/collapsed in CSS unless image active) -->
-            <div class="control-group alignment-controls" id="alignment-controls-box" style="display: none;">
-              <label style="color: var(--accent-gold);">Align Portrait Image</label>
+            <!-- SIMPLIFIED ADJUSTMENT SLIDERS -->
+            <div class="control-group alignment-controls" id="alignment-controls-box" style="display: none; background: rgba(212, 163, 115, 0.03); border: 1px solid rgba(212, 163, 115, 0.15); padding: 0.85rem; border-radius: 10px; margin-top: 1rem;">
+              <label style="color: var(--accent-gold); font-size: 0.85rem; font-weight: 600; display: block; margin-bottom: 0.75rem;">Adjust Overlay Position</label>
               
-              <div class="slider-row">
-                <div class="control-label-row">
-                  <span class="sub-lbl">Image Size Scale</span>
-                  <span id="img-scale-val" class="math-value">1.0x</span>
+              <div class="slider-row" style="margin-bottom: 0.75rem;">
+                <div class="control-label-row" style="display: flex; justify-content: space-between; font-size: 0.75rem; margin-bottom: 0.25rem;">
+                  <span class="sub-lbl" style="color: var(--text-muted);">Hairstyle Scale</span>
+                  <span id="img-scale-val" class="math-value" style="color: var(--accent-gold); font-weight: 600;">1.00x</span>
                 </div>
-                <input type="range" id="face-img-scale" min="0.4" max="2.2" step="0.05" value="1.0">
+                <input type="range" id="face-img-scale" min="0.4" max="2.2" step="0.05" value="1.0" style="width: 100%;">
               </div>
 
-              <div class="slider-row">
-                <div class="control-label-row">
-                  <span class="sub-lbl">Center X Offset</span>
-                  <span id="img-x-val" class="math-value">0 px</span>
+              <div class="slider-row" style="margin-bottom: 0.75rem;">
+                <div class="control-label-row" style="display: flex; justify-content: space-between; font-size: 0.75rem; margin-bottom: 0.25rem;">
+                  <span class="sub-lbl" style="color: var(--text-muted);">Color Customization</span>
+                  <span id="hair-color-val" class="math-value" style="color: var(--accent-gold); font-weight: 600;">330° (Rose Gold)</span>
                 </div>
-                <input type="range" id="face-img-x" min="-200" max="200" step="2" value="0">
-              </div>
-
-              <div class="slider-row">
-                <div class="control-label-row">
-                  <span class="sub-lbl">Center Y Offset</span>
-                  <span id="img-y-val" class="math-value">0 px</span>
-                </div>
-                <input type="range" id="face-img-y" min="-200" max="200" step="2" value="0">
+                <input type="range" id="hair-color" min="0" max="360" step="1" value="330" style="width: 100%;">
               </div>
               
-              <button id="btn-remove-portrait" class="btn-secondary reset-btn" style="width: 100%; margin-left: 0; margin-top: 0.5rem; border-color: rgba(224, 122, 95, 0.4); color: var(--accent-copper);">Remove Portrait Overlay</button>
+              <button id="btn-remove-portrait" class="btn-secondary reset-btn" style="width: 100%; margin-left: 0; margin-top: 0.5rem; border-color: rgba(224, 122, 95, 0.3); color: var(--accent-copper); padding: 0.5rem;">Remove Photo Backdrop</button>
             </div>
-
-            <div class="control-group">
-              <label for="hair-style">Hair Texture / Preset</label>
-              <select id="hair-style">
-                <option value="straight" selected>Classic Straight</option>
-                <option value="wavy">Soft Ocean Wave</option>
-                <option value="curly">Dimensional Curls</option>
-                <option value="afro">Sculpted Volume Coil</option>
-              </select>
-            </div>
-            
-            <div class="control-group">
-              <div class="control-label-row">
-                <label for="hair-length">Design Length</label>
-                <span id="hair-length-val" class="math-value">4.5 dm</span>
-              </div>
-              <input type="range" id="hair-length" min="2.0" max="8.0" step="0.1" value="4.5">
-            </div>
-
-            <div class="control-group">
-              <div class="control-label-row">
-                <label for="hair-color">Color Hue / HSL</label>
-                <span id="hair-color-val" class="math-value">330° (Rose Gold)</span>
-              </div>
-              <input type="range" id="hair-color" min="0" max="360" step="1" value="330">
-            </div>
-
-            <div class="control-group">
-              <div class="control-label-row">
-                <label for="wind-speed">Wind Breeze Speed</label>
-                <span id="wind-speed-val" class="math-value">1.5 m/s</span>
-              </div>
-              <input type="range" id="wind-speed" min="0" max="5.0" step="0.1" value="1.5">
-            </div>
-
-            <div class="control-group physics-row">
-              <div class="checkbox-container">
-                <input type="checkbox" id="biometric-overlay" checked>
-                <label for="biometric-overlay">Enable Biometric Scan Overlays</label>
-              </div>
-            </div>
-            
-            <button id="reset-hair-btn" class="btn-secondary reset-btn" style="width: 100%; margin-left: 0; margin-top: 1rem;">Reset Hair Strands</button>
           </div>
 
-          <!-- 3D Interactive Canvas -->
+          <!-- Live Hairstyle Matcher Viewport -->
           <div class="glass-card lab-viewport">
             <div class="card-glow"></div>
             <div class="viewport-header">
-              <h4>Real-time Style Overlay</h4>
-              <div class="telemetry-badge" id="rendering-telemetry">
-                FPS: 60
+              <h4>Live Style Matcher</h4>
+              <div class="telemetry-badge" id="telemetry-mode" style="background: rgba(212, 163, 115, 0.12); color: var(--accent-gold);">
+                Sticker Matcher Mode
               </div>
             </div>
 
@@ -288,33 +243,38 @@
               <!-- Biometric scanning overlay scanner lines -->
               <div class="scanner-line" id="scanner-beam"></div>
               <canvas id="hair-canvas" width="600" height="400"></canvas>
-              <div class="canvas-instructions" id="viewport-helper">Click & Drag to Rotate Model</div>
+              <div class="canvas-instructions" id="viewport-helper">Click & Drag Hairstyle to Align Over Face</div>
             </div>
 
-            <div class="viewport-telemetry">
-              <div class="telemetry-box" style="flex-grow: 1;">
-                <span class="telemetry-lbl">Styling Mode</span>
-                <span class="telemetry-val" id="telemetry-mode">Camera Rotate</span>
-              </div>
-              <button id="btn-capture-snapshot" class="btn-primary" style="padding: 0.5rem 1.2rem; border-radius: 8px; font-size: 0.82rem; margin-top: 0.1rem; box-shadow: none;">
-                <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2.5" fill="none" style="margin-right: 0.35rem; vertical-align: middle; display: inline-block;"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>Capture Design
+            <div class="viewport-telemetry" style="justify-content: flex-end;">
+              <button id="btn-capture-snapshot" class="btn-primary" style="padding: 0.55rem 1.4rem; border-radius: 8px; font-size: 0.82rem; box-shadow: none;">
+                <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2.5" fill="none" style="margin-right: 0.35rem; vertical-align: middle; display: inline-block;"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>Save Styling Blueprint
               </button>
             </div>
           </div>
 
-          <!-- Science of Hair card -->
+          <!-- Consultation Preparation Tips -->
           <div class="glass-card lab-science">
             <div class="card-glow"></div>
-            <h3>Physics & Styling Dynamics</h3>
-            <p>Our salon builds hair silhouettes according to mathematical weight distribution and structural elasticity.</p>
+            <h3>Consultation Prep Guidelines</h3>
+            <p style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.5; margin-bottom: 1.25rem;">Follow these simple prep recommendations to make your face-to-face appointment seamless:</p>
             
-            <div class="equation-box">
-              <code>F = -k · x + μ · v</code>
-            </div>
-            <p class="equation-desc">Strands model damped spring-mass equations where <code>k</code> controls curl stiffness and <code>μ</code> represents wind damping factor.</p>
-            
-            <div class="equation-detail">
-              <p>Current Color Vector: <br><strong class="highlight-val" id="color-vector-desc">HSL(330°, 85%, 55%)</strong></p>
+            <div class="prep-tips-list" style="display: flex; flex-direction: column; gap: 1rem;">
+              <div class="prep-tip-item" style="display: flex; gap: 0.75rem;">
+                <span class="tip-num" style="display: flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 50%; background: rgba(212,163,115,0.12); border: 1px solid var(--accent-gold); color: var(--accent-gold); font-size: 0.8rem; font-weight: 700; flex-shrink: 0;">1</span>
+                <div>
+                  <strong style="display: block; font-size: 0.85rem; color: var(--text-main); margin-bottom: 0.15rem;">Freshly Cleaned Hair</strong>
+                  <p style="font-size: 0.78rem; color: var(--text-muted); line-height: 1.4;">Wash your hair 24 hours before your session using a clarifying shampoo. Avoid applying heavy oils or thick styling creams.</p>
+                </div>
+              </div>
+              
+              <div class="prep-tip-item" style="display: flex; gap: 0.75rem;">
+                <span class="tip-num" style="display: flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 50%; background: rgba(212,163,115,0.12); border: 1px solid var(--accent-gold); color: var(--accent-gold); font-size: 0.8rem; font-weight: 700; flex-shrink: 0;">2</span>
+                <div>
+                  <strong style="display: block; font-size: 0.85rem; color: var(--text-main); margin-bottom: 0.15rem;">Wear Natural Texture</strong>
+                  <p style="font-size: 0.78rem; color: var(--text-muted); line-height: 1.4;">Let your hair dry naturally so your stylist can immediately examine your natural bounce pattern, volume density, and curl structures.</p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
