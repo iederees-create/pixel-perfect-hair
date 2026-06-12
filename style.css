@@ -1630,6 +1630,94 @@ footer p {
   height: 32px;
 }
 
+/* Portrait Face Overlay controls */
+.camera-btn-group {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+.camera-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border-glass);
+  color: var(--text-muted);
+  padding: 0.6rem;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: var(--transition-smooth);
+}
+.camera-btn:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-primary);
+}
+.camera-btn.active {
+  background: rgba(212, 163, 115, 0.15);
+  border-color: var(--accent-gold);
+  color: var(--accent-gold);
+  box-shadow: 0 0 10px rgba(212, 163, 115, 0.15);
+}
+.alignment-controls {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border-glass);
+  padding: 1rem;
+  border-radius: 12px;
+  margin-top: 1rem;
+}
+.slider-row {
+  margin-bottom: 0.75rem;
+}
+.sub-lbl {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+.camera-flash {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: #fff;
+  opacity: 0;
+  z-index: 10;
+  pointer-events: none;
+}
+.camera-flash.flash-active {
+  animation: flashAnim 0.6s ease-out forwards;
+}
+@keyframes flashAnim {
+  0% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* Exporter styles */
+.download-receipt-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  background: linear-gradient(135deg, var(--accent-gold) 0%, var(--accent-copper) 100%);
+  color: var(--text-inverse);
+  padding: 0.8rem 1rem;
+  border-radius: 12px;
+  border: none;
+  font-weight: 700;
+  font-size: 0.85rem;
+  font-family: var(--font-heading);
+  cursor: pointer;
+  margin-top: 1rem;
+  transition: var(--transition-smooth);
+}
+.download-receipt-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 5px 15px rgba(224, 122, 95, 0.3);
+}
+
 /* Layout Breakpoints & Responsiveness */
 @media (max-width: 1024px) {
   h1 {

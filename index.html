@@ -156,6 +156,54 @@
               </div>
             </div>
 
+            <!-- CAMERA OVERLAY SECTION -->
+            <div class="control-group">
+              <label>Portrait Face Overlay</label>
+              <div class="camera-btn-group">
+                <button id="btn-webcam" class="camera-btn" title="Activate Webcam">
+                  <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                  <span>Use Camera</span>
+                </button>
+                <button id="btn-upload" class="camera-btn" title="Upload Photo">
+                  <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+                  <span>Upload Photo</span>
+                </button>
+              </div>
+              <input type="file" id="portrait-file-input" accept="image/*" style="display:none;">
+              <video id="webcam-stream" autoplay playsinline style="display:none;"></video>
+            </div>
+
+            <!-- IMAGE ALIGNMENT SLIDERS (Initially hidden/collapsed in CSS unless image active) -->
+            <div class="control-group alignment-controls" id="alignment-controls-box" style="display: none;">
+              <label style="color: var(--accent-gold);">Align Portrait Image</label>
+              
+              <div class="slider-row">
+                <div class="control-label-row">
+                  <span class="sub-lbl">Image Size Scale</span>
+                  <span id="img-scale-val" class="math-value">1.0x</span>
+                </div>
+                <input type="range" id="face-img-scale" min="0.4" max="2.2" step="0.05" value="1.0">
+              </div>
+
+              <div class="slider-row">
+                <div class="control-label-row">
+                  <span class="sub-lbl">Center X Offset</span>
+                  <span id="img-x-val" class="math-value">0 px</span>
+                </div>
+                <input type="range" id="face-img-x" min="-200" max="200" step="2" value="0">
+              </div>
+
+              <div class="slider-row">
+                <div class="control-label-row">
+                  <span class="sub-lbl">Center Y Offset</span>
+                  <span id="img-y-val" class="math-value">0 px</span>
+                </div>
+                <input type="range" id="face-img-y" min="-200" max="200" step="2" value="0">
+              </div>
+              
+              <button id="btn-remove-portrait" class="btn-secondary reset-btn" style="width: 100%; margin-left: 0; margin-top: 0.5rem; border-color: rgba(224, 122, 95, 0.4); color: var(--accent-copper);">Remove Portrait Overlay</button>
+            </div>
+
             <div class="control-group">
               <label for="hair-style">Hair Texture / Preset</label>
               <select id="hair-style">
@@ -211,6 +259,8 @@
             </div>
             
             <div class="canvas-wrapper">
+              <!-- Flash effect overlay -->
+              <div class="camera-flash" id="camera-flash-effect"></div>
               <!-- Biometric scanning overlay scanner lines -->
               <div class="scanner-line" id="scanner-beam"></div>
               <canvas id="hair-canvas" width="600" height="400"></canvas>
@@ -218,14 +268,13 @@
             </div>
 
             <div class="viewport-telemetry">
-              <div class="telemetry-box">
-                <span class="telemetry-lbl">Active Strands</span>
-                <span class="telemetry-val" id="telemetry-strands">350</span>
-              </div>
-              <div class="telemetry-box">
+              <div class="telemetry-box" style="flex-grow: 1;">
                 <span class="telemetry-lbl">Styling Mode</span>
                 <span class="telemetry-val" id="telemetry-mode">Camera Rotate</span>
               </div>
+              <button id="btn-capture-snapshot" class="btn-primary" style="padding: 0.5rem 1.2rem; border-radius: 8px; font-size: 0.82rem; margin-top: 0.1rem; box-shadow: none;">
+                <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2.5" fill="none" style="margin-right: 0.35rem; vertical-align: middle; display: inline-block;"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>Capture Design
+              </button>
             </div>
           </div>
 

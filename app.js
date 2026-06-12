@@ -20,7 +20,9 @@ const globalBookingState = {
   stylist: '',
   service: '',
   price: '',
-  diagnosticRecommended: false
+  diagnosticRecommended: false,
+  capturedImage: null, // Holds the composite styling image data URL
+  styleRecipe: '' // Text representation of hair config
 };
 
 /* ==========================================
@@ -223,6 +225,179 @@ function init3DStylingLab() {
   const fpsTelemetry = document.getElementById('rendering-telemetry');
   const modeTelemetry = document.getElementById('telemetry-mode');
 
+  // Webcam & Overlay UI
+  const btnWebcam = document.getElementById('btn-webcam');
+  const btnUpload = document.getElementById('btn-upload');
+  const fileInput = document.getElementById('portrait-file-input');
+  const webcamStream = document.getElementById('webcam-stream');
+  const alignmentBox = document.getElementById('alignment-controls-box');
+  const sliderScale = document.getElementById('face-img-scale');
+  const sliderX = document.getElementById('face-img-x');
+  const sliderY = document.getElementById('face-img-y');
+  const labelScale = document.getElementById('img-scale-val');
+  const labelX = document.getElementById('img-x-val');
+  const labelY = document.getElementById('img-y-val');
+  const btnRemovePortrait = document.getElementById('btn-remove-portrait');
+  const btnCaptureSnapshot = document.getElementById('btn-capture-snapshot');
+  const cameraFlash = document.getElementById('camera-flash-effect');
+
+  // Overlay state variables
+  let overlayImage = null; // HTMLVideoElement or HTMLImageElement
+  let isVideoOverlay = false;
+  let overlayScale = 1.0;
+  let overlayOffsetX = 0;
+  let overlayOffsetY = 0;
+  let streamObject = null;
+
+  // Setup alignment values change listeners
+  sliderScale?.addEventListener('input', (e) => {
+    overlayScale = parseFloat(e.target.value);
+    if (labelScale) labelScale.textContent = `${overlayScale.toFixed(2)}x`;
+  });
+  sliderX?.addEventListener('input', (e) => {
+    overlayOffsetX = parseInt(e.target.value);
+    if (labelX) labelX.textContent = `${overlayOffsetX} px`;
+  });
+  sliderY?.addEventListener('input', (e) => {
+    overlayOffsetY = parseInt(e.target.value);
+    if (labelY) labelY.textContent = `${overlayOffsetY} px`;
+  });
+
+  // Activate Camera streaming
+  btnWebcam?.addEventListener('click', async () => {
+    if (btnWebcam.classList.contains('active')) {
+      stopCameraStream();
+    } else {
+      try {
+        stopCameraStream(); // clear any previous upload or stream
+        
+        streamObject = await navigator.mediaDevices.getUserMedia({ 
+          video: { width: 640, height: 480, facingMode: 'user' } 
+        });
+        
+        if (webcamStream) {
+          webcamStream.srcObject = streamObject;
+          webcamStream.play();
+          overlayImage = webcamStream;
+          isVideoOverlay = true;
+        }
+
+        btnWebcam.classList.add('active');
+        btnUpload?.classList.remove('active');
+        if (alignmentBox) alignmentBox.style.display = 'block';
+      } catch (err) {
+        alert("Camera Access Denied: Please verify permissions or upload a portrait photo instead.");
+        console.error(err);
+      }
+    }
+  });
+
+  // Upload Portrait
+  btnUpload?.addEventListener('click', () => {
+    fileInput?.click();
+  });
+
+  fileInput?.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const img = new Image();
+      img.onload = () => {
+        stopCameraStream(); // clear stream if active
+        overlayImage = img;
+        isVideoOverlay = false;
+        
+        btnUpload?.classList.add('active');
+        btnWebcam?.classList.remove('active');
+        if (alignmentBox) alignmentBox.style.display = 'block';
+      };
+      img.src = event.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+
+  // Remove Portrait button
+  btnRemovePortrait?.addEventListener('click', () => {
+    stopCameraStream();
+  });
+
+  function stopCameraStream() {
+    overlayImage = null;
+    isVideoOverlay = false;
+    
+    if (streamObject) {
+      streamObject.getTracks().forEach(track => track.stop());
+      streamObject = null;
+    }
+    if (webcamStream) {
+      webcamStream.srcObject = null;
+    }
+
+    btnWebcam?.classList.remove('active');
+    btnUpload?.classList.remove('active');
+    if (alignmentBox) alignmentBox.style.display = 'none';
+
+    // Reset slider controls
+    overlayScale = 1.0;
+    overlayOffsetX = 0;
+    overlayOffsetY = 0;
+    if (sliderScale) sliderScale.value = 1.0;
+    if (sliderX) sliderX.value = 0;
+    if (sliderY) sliderY.value = 0;
+    if (labelScale) labelScale.textContent = '1.00x';
+    if (labelX) labelX.textContent = '0 px';
+    if (labelY) labelY.textContent = '0 px';
+  }
+
+  // Capture current styling template snapshot
+  btnCaptureSnapshot?.addEventListener('click', () => {
+    if (cameraFlash) {
+      cameraFlash.classList.add('flash-active');
+      setTimeout(() => cameraFlash.classList.remove('flash-active'), 600);
+    }
+
+    // Export current canvas frame
+    const dataURL = canvas.toDataURL('image/png');
+    globalBookingState.capturedImage = dataURL;
+
+    // Create recipe string
+    const style = styleSelect?.value || 'straight';
+    const length = lengthSlider ? parseFloat(lengthSlider.value).toFixed(1) : '4.5';
+    const color = colorSlider ? colorSlider.value : '330';
+    let cutCount = 0;
+    hairStrands.forEach(s => {
+      if (s.maxSteps < 12) cutCount++;
+    });
+    
+    globalBookingState.styleRecipe = `Style: ${style.toUpperCase()}, Length: ${length}dm, Hue: ${color}°, Trims: ${cutCount} strands`;
+
+    // Open chat drawer and notify user
+    const drawer = document.getElementById('chat-drawer');
+    const badge = document.getElementById('chat-notification');
+    if (drawer) {
+      drawer.classList.add('open');
+      if (badge) badge.style.display = 'none';
+
+      const chatMessages = document.getElementById('chat-messages');
+      if (chatMessages) {
+        const id = 'prepopulated-capture-notice';
+        const old = document.getElementById(id);
+        if (old) old.remove();
+
+        const msg = document.createElement('div');
+        msg.id = id;
+        msg.className = 'chat-bubble bot-message';
+        msg.innerHTML = `<p><strong>📸 Custom Styling Captured!</strong><br>` +
+                        `I've saved your blueprint: <br><i>${globalBookingState.styleRecipe}</i><br><br>` +
+                        `When you book, I will generate a downloadable Stylist Receipt Card with your portrait for your appointment!</p>`;
+        chatMessages.appendChild(msg);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+      }
+    }
+  });
+
   // Interactive Tools selection
   let currentTool = 'rotate'; // rotate, scissor, comb
   const toolRotate = document.getElementById('tool-rotate');
@@ -385,10 +560,8 @@ function init3DStylingLab() {
       spinVelocityX = deltaX * 0.0015;
       spinVelocityY = deltaY * 0.0015;
     } else if (currentTool === 'scissor') {
-      // Scissors cut detection: find any projected hair node near mouse coordinates and trim it
       trimHairAtPoint(mouseX, mouseY);
     } else if (currentTool === 'comb') {
-      // Comb offset displacement: push nearest hair nodes in drag direction
       combHairAtPoint(mouseX, mouseY, deltaX, deltaY);
     }
 
@@ -459,7 +632,6 @@ function init3DStylingLab() {
     const steps = style === 'afro' ? 8 : 12;
 
     hairStrands.forEach((strand) => {
-      // Loop nodes starting from roots to tips
       for (let step = 1; step <= strand.maxSteps; step++) {
         const segmentPct = step / steps;
         let dy = -length * 0.12 * segmentPct;
@@ -474,7 +646,6 @@ function init3DStylingLab() {
         const proj = project(node3D);
         const dist = Math.sqrt((proj.x - mx) ** 2 + (proj.y - my) ** 2);
         
-        // If cursor gets within 16px of a node, trim the strand from that step outwards
         if (dist < 16 && step < strand.maxSteps) {
           strand.maxSteps = Math.max(1, step - 1);
           break;
@@ -490,7 +661,6 @@ function init3DStylingLab() {
     const steps = style === 'afro' ? 8 : 12;
 
     hairStrands.forEach((strand) => {
-      // Get the tip node position
       const segmentPct = strand.maxSteps / steps;
       let targetY = -length * 0.12 * segmentPct;
       if (style === 'afro') targetY = -length * 0.04 * segmentPct;
@@ -504,11 +674,10 @@ function init3DStylingLab() {
       const proj = project(node3D);
       const dist = Math.sqrt((proj.x - mx) ** 2 + (proj.y - my) ** 2);
       
-      // If tip is near mouse pointer, apply offset relative to drag speed
       if (dist < 32) {
         const factor = 0.003;
         strand.combOffset.x += dx * factor;
-        strand.combOffset.y -= dy * factor; // Y is inverted in screen coords
+        strand.combOffset.y -= dy * factor;
       }
     });
   }
@@ -540,6 +709,15 @@ function init3DStylingLab() {
     }
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // DRAW PORTRAIT IMAGE BACKDROP IF ACTIVE
+    if (overlayImage) {
+      const destW = canvas.width * overlayScale;
+      const destH = canvas.height * overlayScale;
+      const destX = (canvas.width - destW) / 2 + overlayOffsetX;
+      const destY = (canvas.height - destH) / 2 + overlayOffsetY;
+      ctx.drawImage(overlayImage, destX, destY, destW, destH);
+    }
 
     const length = parseFloat(lengthSlider.value);
     const hue = parseInt(colorSlider.value);
@@ -575,8 +753,8 @@ function init3DStylingLab() {
     // Draw main Face Wireframe
     ctx.beginPath();
     ctx.strokeStyle = document.documentElement.getAttribute('data-theme') === 'light' 
-      ? 'rgba(9, 8, 18, 0.06)' 
-      : 'rgba(212, 163, 115, 0.06)';
+      ? 'rgba(9, 8, 18, 0.07)' 
+      : 'rgba(212, 163, 115, 0.08)';
     ctx.lineWidth = 1;
     
     headLines.forEach(([i, j]) => {
@@ -687,21 +865,16 @@ function init3DStylingLab() {
     requestAnimationFrame(draw);
   }
 
-  // Trigger initial render
   draw();
 
   return {
     triggerBiometricScan: (callback) => {
-      // Toggle biometrics checkbox
       bioOverlayCheckbox.checked = true;
-      // Start scanning animation on scanline beam
       scannerBeam?.classList.add('scanning');
-      // Spin quickly during scan
       spinVelocityX = 0.05;
       
       setTimeout(() => {
         spinVelocityX = 0.005;
-        // Finished scanning callback
         if (callback) callback();
       }, 2500);
     },
@@ -729,7 +902,6 @@ function initAIDiagnosticQuiz(labEngine) {
   let currentStepIndex = 0;
   const selections = { texture: '', scalp: '', history: '' };
 
-  // Setup click listeners on all option buttons
   document.querySelectorAll('.option-button').forEach(btn => {
     btn.addEventListener('click', () => {
       const parentStep = btn.closest('.quiz-step');
@@ -755,7 +927,6 @@ function initAIDiagnosticQuiz(labEngine) {
       
       quizPrevBtn.style.display = 'inline-flex';
       
-      // Check if next step already has a selection
       const nextStepSelections = steps[currentStepIndex].querySelectorAll('.option-button.selected');
       if (nextStepSelections.length > 0) {
         quizNextBtn.removeAttribute('disabled');
@@ -767,15 +938,12 @@ function initAIDiagnosticQuiz(labEngine) {
         quizNextBtn.textContent = 'Generate Profile';
       }
     } else {
-      // Completed last step! Trigger biometric scanner in styling lab
       quizCardBox.style.display = 'none';
       
       if (labEngine) {
-        // Scroll slightly to lab viewport so user sees the biometrics scan
         document.getElementById('styling-lab').scrollIntoView({ behavior: 'smooth' });
         
         labEngine.triggerBiometricScan(() => {
-          // Finished scan, render results dashboard
           document.getElementById('diagnostic-lab').scrollIntoView({ behavior: 'smooth' });
           renderDiagnosticReport();
         });
@@ -809,9 +977,8 @@ function initAIDiagnosticQuiz(labEngine) {
     let cost = 1850;
     let preset = 'wavy';
     let length = 4.5;
-    let hue = 330; // Rose Gold
+    let hue = 330; 
 
-    // Logic based on texture
     if (selections.texture === 'straight') {
       recommendedStyle = 'Dry-Cut Sculpted Bob';
       preset = 'straight';
@@ -820,20 +987,19 @@ function initAIDiagnosticQuiz(labEngine) {
       recommendedStyle = 'Textured Coastal Waves';
       preset = 'wavy';
       length = 5.2;
-      hue = 30; // Golden Copper
+      hue = 30; 
     } else if (selections.texture === 'curly') {
       recommendedStyle = 'Volumetric Layered Shag';
       preset = 'curly';
       length = 6.0;
-      hue = 48; // Honey Blonde
+      hue = 48; 
     } else if (selections.texture === 'coily') {
       recommendedStyle = 'Sculpted Halo Afro Coil';
       preset = 'afro';
       length = 4.0;
-      hue = 20; // Copper
+      hue = 20; 
     }
 
-    // Logic based on behavior
     if (selections.scalp === 'dry') {
       hydration = 45;
       elasticity = 55;
@@ -850,7 +1016,6 @@ function initAIDiagnosticQuiz(labEngine) {
       cost += 200;
     }
 
-    // Logic based on color history
     if (selections.history === 'virgin') {
       porosity = 25;
       elasticity = Math.min(100, elasticity + 10);
@@ -865,26 +1030,22 @@ function initAIDiagnosticQuiz(labEngine) {
       cost += 600;
     }
 
-    // Populate Report Card
     document.getElementById('report-silhouette').textContent = recommendedStyle;
     document.getElementById('report-treatment').textContent = recommendedTreatment;
     document.getElementById('report-price').textContent = `R ${cost}`;
     
-    // Store variables globally for scheduling hooks
     globalBookingState.service = `${recommendedStyle} & ${recommendedTreatment}`;
     globalBookingState.price = `R ${cost}`;
     globalBookingState.diagnosticRecommended = true;
 
     quizResultsBox.style.display = 'block';
 
-    // Animate circular SVG gauges
     setTimeout(() => {
       animateRadialGauge('gauge-hydration', hydration);
       animateRadialGauge('gauge-elasticity', elasticity);
       animateRadialGauge('gauge-porosity', porosity);
     }, 150);
 
-    // Sync parameters back to 3D Canvas Styling Lab
     if (labEngine) {
       labEngine.updateParameters(preset, length, hue);
     }
@@ -894,13 +1055,11 @@ function initAIDiagnosticQuiz(labEngine) {
     const fill = document.getElementById(`${id}-fill`);
     const valText = document.getElementById(`${id}-val`);
     if (fill && valText) {
-      // Dasharray represents percentage value (circumference is 100)
       fill.setAttribute('stroke-dasharray', `${val}, 100`);
       valText.textContent = `${val}%`;
     }
   }
 
-  // Restart Quiz resetter
   restartQuizBtn.addEventListener('click', () => {
     quizResultsBox.style.display = 'none';
     currentStepIndex = 0;
@@ -915,7 +1074,6 @@ function initAIDiagnosticQuiz(labEngine) {
     quizCardBox.style.display = 'block';
   });
 
-  // Pre-Book Service action button
   bookDiagnosticBtn.addEventListener('click', () => {
     const chatDrawer = document.getElementById('chat-drawer');
     const badge = document.getElementById('chat-notification');
@@ -923,10 +1081,8 @@ function initAIDiagnosticQuiz(labEngine) {
       chatDrawer.classList.add('open');
       if (badge) badge.style.display = 'none';
       
-      // Inject consultation pre-populated message
       const chatMessages = document.getElementById('chat-messages');
       if (chatMessages) {
-        // Check if message was already appended
         const id = 'prepopulated-diagnostic-booking';
         if (!document.getElementById(id)) {
           const msg = document.createElement('div');
@@ -939,7 +1095,6 @@ function initAIDiagnosticQuiz(labEngine) {
           chatMessages.appendChild(msg);
           chatMessages.scrollTop = chatMessages.scrollHeight;
           
-          // Set booking wizard state in chatbot
           window.chatbotBookingStep = 1;
           window.chatbotBookingData = { 
             name: '', 
@@ -965,7 +1120,6 @@ function initAIChatbot() {
   const chatMessages = document.getElementById('chat-messages');
   const badge = document.getElementById('chat-notification');
   
-  // Set global states on window object so diagnostic buttons can pre-populate them
   window.chatbotBookingStep = 0;
   window.chatbotBookingData = { name: '', phone: '', service: '', date: '' };
 
@@ -1001,6 +1155,11 @@ function initAIChatbot() {
       const reply = generateBotReply(text);
       appendMessage(reply, 'bot-message');
       chatMessages.scrollTop = chatMessages.scrollHeight;
+      
+      // Inject Download Receipt Button if booking successfully completed
+      if (window.chatbotBookingStep === 0 && window.lastBookingReceiptData) {
+        injectReceiptCardButton(chatMessages);
+      }
     }, 650);
   }
 
@@ -1014,14 +1173,12 @@ function initAIChatbot() {
   function generateBotReply(userInput) {
     const input = userInput.toLowerCase();
 
-    // Booking Wizard
     if (window.chatbotBookingStep > 0) {
       return handleBookingWizard(input, userInput);
     }
 
     if (input.includes('book') || input.includes('sched') || input.includes('appoint')) {
       window.chatbotBookingStep = 1;
-      // Clear data, check if stylist pre-selected
       window.chatbotBookingData = { 
         name: '', 
         phone: '', 
@@ -1076,10 +1233,9 @@ function initAIChatbot() {
       case 2:
         window.chatbotBookingData.phone = originalInput;
         window.chatbotBookingStep = 3;
-        if (globalBookingState.diagnosticRecommended) {
-          // Skip service selection since it was pre-populated by quiz
+        if (globalBookingState.diagnosticRecommended || globalBookingState.styleRecipe) {
           window.chatbotBookingStep = 4;
-          return `Perfect. You're booked for the recommended "${window.chatbotBookingData.service}" service. What date/time works best for you?`;
+          return `Perfect. You're booked for: "${window.chatbotBookingData.service}". What date and time works best for you?`;
         }
         return "Which service would you like? (Cut, Balayage, Keratin, or Consultation)";
       case 3:
@@ -1091,13 +1247,208 @@ function initAIChatbot() {
         window.chatbotBookingStep = 0;
         
         let stylistStr = globalBookingState.stylist ? ` with ${globalBookingState.stylist}` : '';
+        
+        // Save the booking details globally so the download card exporter can access them
+        window.lastBookingReceiptData = {
+          name: window.chatbotBookingData.name,
+          phone: window.chatbotBookingData.phone,
+          service: window.chatbotBookingData.service,
+          stylist: globalBookingState.stylist || 'Assigned Stylist',
+          date: window.chatbotBookingData.date,
+          recipe: globalBookingState.styleRecipe || 'Classic Straight (Default)'
+        };
+
+        // Update WhatsApp float link to include snapshot notice + recipe details
+        updateWhatsAppLink(window.lastBookingReceiptData);
+
         return `Perfect! Your booking draft is set:\n` +
-               `• Client Name: ${window.chatbotBookingData.name}\n` +
-               `• Contact: ${window.chatbotBookingData.phone}\n` +
-               `• Service: ${window.chatbotBookingData.service}${stylistStr}\n` +
-               `• Requested Date: ${window.chatbotBookingData.date}\n\n` +
-               `Our lead team will call you shortly to confirm your slot! ✨`;
+               `• Client Name: ${window.lastBookingReceiptData.name}\n` +
+               `• Contact: ${window.lastBookingReceiptData.phone}\n` +
+               `• Service: ${window.lastBookingReceiptData.service}${stylistStr}\n` +
+               `• Requested Date: ${window.lastBookingReceiptData.date}\n\n` +
+               `Click the button below to download your Custom Stylist Receipt Card, containing your 3D design blueprint overlay to attach directly when you chat!`;
     }
+  }
+
+  function updateWhatsAppLink(data) {
+    const waLink = document.querySelector('.wa-float');
+    if (waLink) {
+      const msg = `Hi Pixel Perfect Hair, I've booked an appointment!\n\n` +
+                  `• Name: ${data.name}\n` +
+                  `• Service: ${data.service}\n` +
+                  `• Stylist: ${data.stylist}\n` +
+                  `• Date: ${data.date}\n` +
+                  `• 3D Style Blueprint: ${data.recipe}\n\n` +
+                  `I have downloaded my Styling Prescription Card and attached it here!`;
+      waLink.href = `https://wa.me/27214391234?text=${encodeURIComponent(msg)}`;
+    }
+  }
+
+  function injectReceiptCardButton(container) {
+    const btn = document.createElement('button');
+    btn.className = 'download-receipt-btn';
+    btn.innerHTML = `<svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2.5" fill="none" style="vertical-align:middle; display:inline-block; margin-right:0.35rem;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg> Download Stylist Receipt Card`;
+    
+    btn.addEventListener('click', () => {
+      generateAndDownloadReceiptImage(window.lastBookingReceiptData);
+    });
+
+    container.appendChild(btn);
+    container.scrollTop = container.scrollHeight;
+    
+    // Clear last data so button isn't generated again until next appointment
+    window.lastBookingReceiptData = null;
+  }
+}
+
+/* ==========================================
+   PRESCRIPTION CARD EXPORTER ENGINE
+   ========================================== */
+function generateAndDownloadReceiptImage(data) {
+  const canvas = document.createElement('canvas');
+  canvas.width = 720;
+  canvas.height = 420;
+  const ctx = canvas.getContext('2d');
+
+  // 1. Draw premium background (Deep cosmic violet)
+  ctx.fillStyle = '#090812';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  // Subtle luxury background gradient lines
+  ctx.strokeStyle = 'rgba(212, 163, 115, 0.04)';
+  ctx.lineWidth = 1;
+  for (let i = 0; i < canvas.width; i += 40) {
+    ctx.beginPath();
+    ctx.moveTo(i, 0);
+    ctx.lineTo(i, canvas.height);
+    ctx.stroke();
+  }
+
+  // 2. Draw outer glass border
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
+  ctx.lineWidth = 10;
+  ctx.strokeRect(5, 5, canvas.width - 10, canvas.height - 10);
+
+  // 3. Draw branding logo header
+  ctx.fillStyle = '#f3f0f7';
+  ctx.font = 'bold 22px Outfit, sans-serif';
+  ctx.fillText('Pixel', 40, 50);
+  
+  // Rose gold gradient effect for "Perfect"
+  const perfectGrad = ctx.createLinearGradient(100, 30, 180, 50);
+  perfectGrad.addColorStop(0, '#d4a373');
+  perfectGrad.addColorStop(1, '#e07a5f');
+  ctx.fillStyle = perfectGrad;
+  ctx.fillText('Perfect', 95, 50);
+
+  ctx.fillStyle = '#a09cb0';
+  ctx.font = '11px JetBrains Mono, monospace';
+  ctx.fillText('HAIR STYLING BLUEPRINT', 40, 72);
+
+  // Draw separator line
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(40, 85);
+  ctx.lineTo(canvas.width - 40, 85);
+  ctx.stroke();
+
+  // 4. Draw composite face styling snapshot
+  if (globalBookingState.capturedImage) {
+    const img = new Image();
+    img.onload = () => {
+      // Draw image in a framed glass box on the left
+      ctx.strokeStyle = 'rgba(212, 163, 115, 0.2)';
+      ctx.lineWidth = 3;
+      ctx.strokeRect(40, 105, 260, 260);
+
+      ctx.drawImage(img, 42, 107, 256, 256);
+      
+      // Draw watermark scanner lines over snapshot
+      ctx.strokeStyle = 'rgba(46, 204, 113, 0.3)';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(42, 235);
+      ctx.lineTo(298, 235);
+      ctx.stroke();
+      
+      continueDrawingText();
+    };
+    img.src = globalBookingState.capturedImage;
+  } else {
+    // Draw generic placeholder box if no snapshot was taken
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.02)';
+    ctx.fillRect(40, 105, 260, 260);
+    ctx.strokeRect(40, 105, 260, 260);
+    
+    ctx.fillStyle = '#a09cb0';
+    ctx.font = '12px Outfit, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('[ No Styling Image Captured ]', 170, 230);
+    ctx.fillText('Use the styling lab to overlay photo', 170, 250);
+    ctx.textAlign = 'left';
+
+    continueDrawingText();
+  }
+
+  function continueDrawingText() {
+    // 5. Draw scheduling & styling recipe details on the right
+    const startX = 340;
+    
+    ctx.fillStyle = '#d4a373';
+    ctx.font = 'bold 12px JetBrains Mono, monospace';
+    ctx.fillText('APPOINTMENT DETAILS', startX, 125);
+
+    ctx.fillStyle = '#f3f0f7';
+    ctx.font = 'bold 16px Outfit, sans-serif';
+    ctx.fillText(data.name || 'Anonymous Client', startX, 150);
+
+    ctx.fillStyle = '#a09cb0';
+    ctx.font = '13px Outfit, sans-serif';
+    ctx.fillText(`Contact: ${data.phone || 'N/A'}`, startX, 172);
+    ctx.fillText(`Scheduled: ${data.date || 'To Be Scheduled'}`, startX, 192);
+    ctx.fillText(`Stylist Assigned: ${data.stylist || 'Any Stylist'}`, startX, 212);
+
+    // Separator
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.06)';
+    ctx.beginPath();
+    ctx.moveTo(startX, 230);
+    ctx.lineTo(canvas.width - 40, 230);
+    ctx.stroke();
+
+    ctx.fillStyle = '#e07a5f';
+    ctx.font = 'bold 12px JetBrains Mono, monospace';
+    ctx.fillText('STYLE RECIPE SPECIFICATION', startX, 255);
+
+    ctx.fillStyle = '#f3f0f7';
+    ctx.font = '13px Outfit, sans-serif';
+    
+    // Split long recipe strings to fit nicely
+    const recipeStr = data.recipe || 'Classic Straight (Default)';
+    ctx.fillText(recipeStr, startX, 280);
+    ctx.fillText(`Treatment: ${data.service || 'Precision Design'}`, startX, 302);
+
+    // Recommended Price Card Box
+    ctx.fillStyle = 'rgba(212, 163, 115, 0.05)';
+    ctx.strokeStyle = 'rgba(212, 163, 115, 0.15)';
+    ctx.fillRect(startX, 325, 340, 40);
+    ctx.strokeRect(startX, 325, 340, 40);
+
+    ctx.fillStyle = '#a09cb0';
+    ctx.font = '12px Outfit, sans-serif';
+    ctx.fillText('Estimated Booking Total:', startX + 15, 349);
+
+    ctx.fillStyle = '#d4a373';
+    ctx.font = 'bold 15px Outfit, sans-serif';
+    ctx.fillText(globalBookingState.price || 'R 650', startX + 245, 349);
+
+    // 6. Automatically trigger download
+    const finalURL = canvas.toDataURL('image/png');
+    const link = document.createElement('a');
+    link.download = `pixel-perfect-prescription-${(data.name || 'client').replace(/\s+/g, '-').toLowerCase()}.png`;
+    link.href = finalURL;
+    link.click();
   }
 }
 
@@ -1223,19 +1574,16 @@ function initStylistSelector() {
       btn.addEventListener('click', () => {
         const name = card.getAttribute('data-stylist');
         
-        // Remove previous selected classes
         cards.forEach(c => {
           c.classList.remove('selected-stylist');
           const cb = c.querySelector('.select-stylist-btn');
           if (cb) cb.textContent = `Select ${c.getAttribute('data-stylist')}`;
         });
 
-        // Add selected class
         card.classList.add('selected-stylist');
         btn.textContent = 'Selected';
         globalBookingState.stylist = name;
 
-        // Auto-open chatbot with assigned stylist pre-population
         const chatDrawer = document.getElementById('chat-drawer');
         const badge = document.getElementById('chat-notification');
         if (chatDrawer) {
@@ -1245,7 +1593,6 @@ function initStylistSelector() {
           const chatMessages = document.getElementById('chat-messages');
           if (chatMessages) {
             const id = 'prepopulated-stylist-selection';
-            // Clear any old selection notices
             const oldNotice = document.getElementById(id);
             if (oldNotice) oldNotice.remove();
 
