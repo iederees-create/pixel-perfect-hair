@@ -1,0 +1,86 @@
+========================================================================
+             DO-IT-YOURSELF (DIY) REBRANDING & HOSTING GUIDE
+========================================================================
+
+If you prefer to edit, customize, and host the website yourself without our help, this guide will walk you through the process.
+
+------------------------------------------------------------------------
+SECTION 1: CUSTOMIZING COLORS & DESIGN (style.css)
+------------------------------------------------------------------------
+All theme colors are controlled via CSS Variables at the top of the "style.css" file. To change the look and feel:
+
+1. Open "style.css" in any text editor (Notepad, VS Code, TextEdit, etc.).
+2. Locate the `:root` block at the top of the file (lines 6-25).
+3. Change the HEX color values to match your brand:
+   * `--bg-primary` - Main page background (default is deep space `#090812`).
+   * `--accent-gold` - Rose gold highlight color (default is `#d4a373`).
+   * `--accent-copper` - Sunset copper secondary color (default is `#e07a5f`).
+   * `--text-primary` - Primary body text color (default is `#f3f0f7`).
+
+4. Save the file. All buttons, borders, canvas highlights, and glows will automatically update!
+
+------------------------------------------------------------------------
+SECTION 2: CUSTOMIZING BUSINESS INFO & SERVICES (index.html)
+------------------------------------------------------------------------
+1. Open "index.html" in a text editor.
+2. Edit Your Salon Name & Info:
+   * Search (Ctrl+F) for "Pixel Perfect" and replace it with your salon name.
+   * Search for "Sea Point" or "Cape Town" and change them to your salon's address and cities.
+   * Search for "27214391234" in the WhatsApp float link and replace it with your WhatsApp phone number. Ensure it has the country code without '+' or spaces (e.g., `27214391234` or `15551234567`).
+3. Modify Services:
+   * Scroll to the Services grid section (around lines 230-270) and modify the titles, descriptions, and prices (e.g. `R 650+`) to match your salon's menu.
+
+------------------------------------------------------------------------
+SECTION 3: CLIENT PROGRESS TRACKER & AI CUSTOMIZATION (app.js)
+------------------------------------------------------------------------
+You can modify the simulated AI responses and the customer health database in "app.js".
+
+1. Customize Hair Health Profiles:
+   * Open "app.js" and look for the `clientDatabase` object (around lines 530-550).
+   * You can add or edit customer codes (like `"pixel100"` or `"gold50"`) and change their Hydration, Elasticity, and Porosity levels, along with custom stylist notes.
+2. Customize the AI Consult Chatbot:
+   * Look for the `generateBotReply(userInput)` function (around lines 450-500).
+   * Modify the text returns for price lists, scheduling steps, or face shape advice to reflect your salon's specific guidelines.
+
+------------------------------------------------------------------------
+SECTION 4: FREE HOSTING ON GITHUB PAGES
+------------------------------------------------------------------------
+GitHub Pages provides free static hosting for HTML templates. To launch your site:
+
+1. Create a free GitHub account at https://github.com.
+2. Click "+" in the top right -> select "New repository".
+3. Repository name: Enter your salon name (e.g., "pixel-perfect-hair"). Set it to "Public".
+4. Click "uploading an existing file", then drag and drop the rebranded files (index.html, style.css, app.js) into the upload window. Click "Commit changes".
+5. Go to your repository's "Settings" tab -> select "Pages" in the left column.
+6. Under "Build and deployment", set the Branch dropdown to "main" (or active branch) and click "Save".
+7. Wait 1 minute, refresh the page, and your site will be live at: `https://<username>.github.io/<repository>/`
+
+------------------------------------------------------------------------
+SECTION 5: INTEGRATING WITH AN EXISTING WIX SITE
+------------------------------------------------------------------------
+If you already have a Wix website and want to use this custom interactive template (specifically the 3D Styling Lab or Tracker) on your Wix page, you can integrate it in three ways:
+
+METHOD A: EMBED VIA HTML IFRAME (RECOMMENDED FOR STYLING LAB ONLY)
+1. In your Wix Editor, click the "+" button (Add Elements) -> select "Embed Code" -> click "HTML Embed".
+2. Set the Embed Type to "Website Address".
+3. Paste the URL of your live hosted site (from Section 4, e.g., `https://<username>.github.io/<repository>/#styling-lab`).
+4. Resize the iframe box inside Wix so it displays the 3D Styling viewport cleanly.
+
+METHOD B: SUBDOMAIN INTEGRATION (RECOMMENDED FOR MAIN SALON SITE)
+If you want to keep your main site on Wix but offer this interactive experience as a premium feature:
+1. Host these files on GitHub Pages or Netlify.
+2. In your domain provider settings, create a subdomain (e.g. `lab.yoursalon.com`) pointing to your hosted GitHub Pages site.
+3. In your Wix Navigation, add a link titled "3D Styling Lab" that links directly to `https://lab.yoursalon.com`.
+
+METHOD C: CUSTOM CODE INJECTION
+If you want to inject the styling lab code directly into a Wix page:
+1. In your Wix Dashboard, go to Settings -> Custom Code.
+2. Add a new code block, select "Body - end", and paste the custom Javascript.
+3. Add a code block to "Head" for the CSS layout.
+4. (Note: Embedding via iframe is significantly easier and more secure).
+
+------------------------------------------------------------------------
+NEED HELP?
+------------------------------------------------------------------------
+If you decide you prefer professional help setting up, editing, or integrating your website, just message me on Etsy! The customization service is fully included in your purchase price.
+------------------------------------------------------------------------

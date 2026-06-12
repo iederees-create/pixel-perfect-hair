@@ -1,0 +1,43 @@
+========================================================================
+             TEMPLATE SETUP & REBRANDING INSTRUCTIONS
+========================================================================
+
+Thank you for your purchase! Follow the instructions below to preview your website template locally or request your complimentary professional rebranding and setup service.
+
+------------------------------------------------------------------------
+STEP 1: PREVIEW THE WEBSITE LOCALLY
+------------------------------------------------------------------------
+You can test the website immediately on your computer:
+1. Extract all downloaded files (index.html, style.css, app.js) into the same folder.
+2. Double-click "index.html" to open it in any modern web browser (Chrome, Safari, Edge, Firefox).
+3. Try rotating the 3D head model in the Styling Lab, adjusting length/color sliders, testing the Hair Health Tracker query using code "PIXEL100", and chatting with the AI Profiler.
+
+------------------------------------------------------------------------
+STEP 2: CLAIM YOUR COMPLIMENTARY REBRANDING & SETUP SERVICE
+------------------------------------------------------------------------
+As part of your purchase, I provide a complete, done-for-you rebranding and migration service to transform this template into your official salon website.
+
+To initiate the rebranding process:
+1. Contact me directly via Etsy Messages.
+2. Send me your salon details, including:
+   - Your salon name and logo.
+   - Your brand colors (or I can extract them from your logo/photos).
+   - Your contact details (phone, email, physical salon address).
+   - Your service menu (cuts, colors, pricing).
+   - Your WhatsApp phone number (to connect the floating button).
+   - Any specific copy or styling tips you want pre-loaded.
+
+3. We will collaborate to customize the website's HTML, CSS, and interactive scripts.
+4. I will modify the source code, apply your styling, and deliver the final publish-ready bundle.
+5. If needed, I will assist you in deploying the website live online (e.g., setting up a custom domain or hosting it for free on GitHub Pages).
+
+------------------------------------------------------------------------
+STEP 3: DO-IT-YOURSELF (DIY) SETUP
+------------------------------------------------------------------------
+If you prefer to edit and host the website yourself without my help, please open "DIY_GUIDE.txt" (included in this download) for a step-by-step guide on how to change colors, customize text, configure your services, deploy it live, or integrate it with an existing Wix site.
+
+------------------------------------------------------------------------
+NEED HELP OR HAVE QUESTIONS?
+------------------------------------------------------------------------
+If you run into any issues or have questions about how to use the website, please send us a message on Etsy. I respond within 24 hours and am committed to helping you launch a website you love!
+------------------------------------------------------------------------
