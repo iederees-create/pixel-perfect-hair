@@ -161,45 +161,117 @@
 
             <div class="control-divider" style="height: 1px; background: var(--border-glass); margin: 1.25rem 0;"></div>
 
-            <!-- Portrait Photo Upload Section -->
-            <div class="control-group" style="margin-bottom: 1.25rem;">
-              <label style="display: block; font-size: 0.85rem; font-weight: 600; color: var(--text-main); margin-bottom: 0.35rem;">Add Your Portrait Photo</label>
-              <p class="sub-lbl" style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.75rem; line-height: 1.4;">Snap a photo or upload one to position this hairstyle over your face.</p>
-              <div class="camera-btn-group" style="display: flex; gap: 0.5rem;">
-                <button id="btn-webcam" class="camera-btn" style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 0.35rem; padding: 0.6rem; border-radius: 8px;" title="Activate Webcam">
-                  <svg viewBox="0 0 24 24" width="15" height="15" stroke="currentColor" stroke-width="2" fill="none"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
-                  <span>Use Camera</span>
-                </button>
-                <button id="btn-upload" class="camera-btn" style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 0.35rem; padding: 0.6rem; border-radius: 8px;" title="Upload Photo">
-                  <svg viewBox="0 0 24 24" width="15" height="15" stroke="currentColor" stroke-width="2" fill="none"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
-                  <span>Upload Photo</span>
-                </button>
-              </div>
-              <input type="file" id="portrait-file-input" accept="image/*" style="display:none;">
-              <video id="webcam-stream" autoplay playsinline style="display:none;"></video>
-            </div>
+            <div class="control-divider" style="height: 1px; background: var(--border-glass); margin: 1.25rem 0;"></div>
 
-            <!-- SIMPLIFIED ADJUSTMENT SLIDERS -->
-            <div class="control-group alignment-controls" id="alignment-controls-box" style="display: none; background: rgba(212, 163, 115, 0.03); border: 1px solid rgba(212, 163, 115, 0.15); padding: 0.85rem; border-radius: 10px; margin-top: 1rem;">
-              <label style="color: var(--accent-gold); font-size: 0.85rem; font-weight: 600; display: block; margin-bottom: 0.75rem;">Adjust Overlay Position</label>
+            <!-- PREFERRED CUT BUILDER -->
+            <div class="control-group" id="preferred-cut-builder-box">
+              <label style="display: block; font-size: 0.88rem; font-weight: 600; color: var(--accent-gold); margin-bottom: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;">Preferred Cut Builder</label>
+              <p class="sub-lbl" style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 1rem; line-height: 1.4;">Select your custom cut preferences. Your custom styling recipe will automatically be added to your consultation receipt.</p>
               
-              <div class="slider-row" style="margin-bottom: 0.75rem;">
-                <div class="control-label-row" style="display: flex; justify-content: space-between; font-size: 0.75rem; margin-bottom: 0.25rem;">
-                  <span class="sub-lbl" style="color: var(--text-muted);">Hairstyle Scale</span>
-                  <span id="img-scale-val" class="math-value" style="color: var(--accent-gold); font-weight: 600;">1.00x</span>
-                </div>
-                <input type="range" id="face-img-scale" min="0.4" max="2.2" step="0.05" value="1.0" style="width: 100%;">
+              <!-- Desired Length Grid -->
+              <div class="builder-section-title" style="font-size: 0.75rem; font-weight: 600; color: var(--text-main); margin-bottom: 0.5rem; text-transform: uppercase;">1. Desired Length</div>
+              <div class="builder-options-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-bottom: 1rem;">
+                <label class="builder-opt" style="display: flex; align-items: center; gap: 0.4rem; background: rgba(255,255,255,0.02); border: 1px solid var(--border-glass); padding: 0.4rem 0.6rem; border-radius: 6px; cursor: pointer; font-size: 0.75rem; color: var(--text-muted);">
+                  <input type="radio" name="cut-length" value="Short Crop" checked style="margin: 0; accent-color: var(--accent-gold);">
+                  <span>Short Crop</span>
+                </label>
+                <label class="builder-opt" style="display: flex; align-items: center; gap: 0.4rem; background: rgba(255,255,255,0.02); border: 1px solid var(--border-glass); padding: 0.4rem 0.6rem; border-radius: 6px; cursor: pointer; font-size: 0.75rem; color: var(--text-muted);">
+                  <input type="radio" name="cut-length" value="Classic Bob" style="margin: 0; accent-color: var(--accent-gold);">
+                  <span>Classic Bob</span>
+                </label>
+                <label class="builder-opt" style="display: flex; align-items: center; gap: 0.4rem; background: rgba(255,255,255,0.02); border: 1px solid var(--border-glass); padding: 0.4rem 0.6rem; border-radius: 6px; cursor: pointer; font-size: 0.75rem; color: var(--text-muted);">
+                  <input type="radio" name="cut-length" value="Shoulder Length" style="margin: 0; accent-color: var(--accent-gold);">
+                  <span>Shoulder Length</span>
+                </label>
+                <label class="builder-opt" style="display: flex; align-items: center; gap: 0.4rem; background: rgba(255,255,255,0.02); border: 1px solid var(--border-glass); padding: 0.4rem 0.6rem; border-radius: 6px; cursor: pointer; font-size: 0.75rem; color: var(--text-muted);">
+                  <input type="radio" name="cut-length" value="Long Flowing" style="margin: 0; accent-color: var(--accent-gold);">
+                  <span>Long Flowing</span>
+                </label>
               </div>
 
-              <div class="slider-row" style="margin-bottom: 0.75rem;">
-                <div class="control-label-row" style="display: flex; justify-content: space-between; font-size: 0.75rem; margin-bottom: 0.25rem;">
-                  <span class="sub-lbl" style="color: var(--text-muted);">Color Customization</span>
-                  <span id="hair-color-val" class="math-value" style="color: var(--accent-gold); font-weight: 600;">330° (Rose Gold)</span>
-                </div>
-                <input type="range" id="hair-color" min="0" max="360" step="1" value="330" style="width: 100%;">
+              <!-- Color Treatment Grid -->
+              <div class="builder-section-title" style="font-size: 0.75rem; font-weight: 600; color: var(--text-main); margin-bottom: 0.5rem; text-transform: uppercase;">2. Color Treatment</div>
+              <div class="builder-options-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-bottom: 1rem;">
+                <label class="builder-opt" style="display: flex; align-items: center; gap: 0.4rem; background: rgba(255,255,255,0.02); border: 1px solid var(--border-glass); padding: 0.4rem 0.6rem; border-radius: 6px; cursor: pointer; font-size: 0.75rem; color: var(--text-muted);">
+                  <input type="checkbox" name="cut-color" value="Solid Tint" style="margin: 0; accent-color: var(--accent-gold);">
+                  <span>Solid Tint</span>
+                </label>
+                <label class="builder-opt" style="display: flex; align-items: center; gap: 0.4rem; background: rgba(255,255,255,0.02); border: 1px solid var(--border-glass); padding: 0.4rem 0.6rem; border-radius: 6px; cursor: pointer; font-size: 0.75rem; color: var(--text-muted);">
+                  <input type="checkbox" name="cut-color" value="Highlights" style="margin: 0; accent-color: var(--accent-gold);">
+                  <span>Highlights</span>
+                </label>
+                <label class="builder-opt" style="display: flex; align-items: center; gap: 0.4rem; background: rgba(255,255,255,0.02); border: 1px solid var(--border-glass); padding: 0.4rem 0.6rem; border-radius: 6px; cursor: pointer; font-size: 0.75rem; color: var(--text-muted);">
+                  <input type="checkbox" name="cut-color" value="Balayage Blend" style="margin: 0; accent-color: var(--accent-gold);">
+                  <span>Balayage Blend</span>
+                </label>
+                <label class="builder-opt" style="display: flex; align-items: center; gap: 0.4rem; background: rgba(255,255,255,0.02); border: 1px solid var(--border-glass); padding: 0.4rem 0.6rem; border-radius: 6px; cursor: pointer; font-size: 0.75rem; color: var(--text-muted);">
+                  <input type="checkbox" name="cut-color" value="Creative Pastel" style="margin: 0; accent-color: var(--accent-gold);">
+                  <span>Creative Pastel</span>
+                </label>
               </div>
-              
-              <button id="btn-remove-portrait" class="btn-secondary reset-btn" style="width: 100%; margin-left: 0; margin-top: 0.5rem; border-color: rgba(224, 122, 95, 0.3); color: var(--accent-copper); padding: 0.5rem;">Remove Photo Backdrop</button>
+
+              <!-- Texture Finish Grid -->
+              <div class="builder-section-title" style="font-size: 0.75rem; font-weight: 600; color: var(--text-main); margin-bottom: 0.5rem; text-transform: uppercase;">3. Texture Finish</div>
+              <div class="builder-options-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-bottom: 1rem;">
+                <label class="builder-opt" style="display: flex; align-items: center; gap: 0.4rem; background: rgba(255,255,255,0.02); border: 1px solid var(--border-glass); padding: 0.4rem 0.6rem; border-radius: 6px; cursor: pointer; font-size: 0.75rem; color: var(--text-muted);">
+                  <input type="radio" name="cut-texture" value="Glass Straight" checked style="margin: 0; accent-color: var(--accent-gold);">
+                  <span>Glass Straight</span>
+                </label>
+                <label class="builder-opt" style="display: flex; align-items: center; gap: 0.4rem; background: rgba(255,255,255,0.02); border: 1px solid var(--border-glass); padding: 0.4rem 0.6rem; border-radius: 6px; cursor: pointer; font-size: 0.75rem; color: var(--text-muted);">
+                  <input type="radio" name="cut-texture" value="Voluminous Blowout" style="margin: 0; accent-color: var(--accent-gold);">
+                  <span>Blowout</span>
+                </label>
+                <label class="builder-opt" style="display: flex; align-items: center; gap: 0.4rem; background: rgba(255,255,255,0.02); border: 1px solid var(--border-glass); padding: 0.4rem 0.6rem; border-radius: 6px; cursor: pointer; font-size: 0.75rem; color: var(--text-muted);">
+                  <input type="radio" name="cut-texture" value="Natural Waves" style="margin: 0; accent-color: var(--accent-gold);">
+                  <span>Natural Waves</span>
+                </label>
+                <label class="builder-opt" style="display: flex; align-items: center; gap: 0.4rem; background: rgba(255,255,255,0.02); border: 1px solid var(--border-glass); padding: 0.4rem 0.6rem; border-radius: 6px; cursor: pointer; font-size: 0.75rem; color: var(--text-muted);">
+                  <input type="radio" name="cut-texture" value="Defined Curls" style="margin: 0; accent-color: var(--accent-gold);">
+                  <span>Defined Curls</span>
+                </label>
+              </div>
+
+              <!-- Bangs / Fringe Grid -->
+              <div class="builder-section-title" style="font-size: 0.75rem; font-weight: 600; color: var(--text-main); margin-bottom: 0.5rem; text-transform: uppercase;">4. Bangs / Fringe</div>
+              <div class="builder-options-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-bottom: 1rem;">
+                <label class="builder-opt" style="display: flex; align-items: center; gap: 0.4rem; background: rgba(255,255,255,0.02); border: 1px solid var(--border-glass); padding: 0.4rem 0.6rem; border-radius: 6px; cursor: pointer; font-size: 0.75rem; color: var(--text-muted);">
+                  <input type="radio" name="cut-bangs" value="No Bangs" checked style="margin: 0; accent-color: var(--accent-gold);">
+                  <span>No Bangs</span>
+                </label>
+                <label class="builder-opt" style="display: flex; align-items: center; gap: 0.4rem; background: rgba(255,255,255,0.02); border: 1px solid var(--border-glass); padding: 0.4rem 0.6rem; border-radius: 6px; cursor: pointer; font-size: 0.75rem; color: var(--text-muted);">
+                  <input type="radio" name="cut-bangs" value="Wispy Fringe" style="margin: 0; accent-color: var(--accent-gold);">
+                  <span>Wispy Fringe</span>
+                </label>
+                <label class="builder-opt" style="display: flex; align-items: center; gap: 0.4rem; background: rgba(255,255,255,0.02); border: 1px solid var(--border-glass); padding: 0.4rem 0.6rem; border-radius: 6px; cursor: pointer; font-size: 0.75rem; color: var(--text-muted);">
+                  <input type="radio" name="cut-bangs" value="Curtain Bangs" style="margin: 0; accent-color: var(--accent-gold);">
+                  <span>Curtain Bangs</span>
+                </label>
+                <label class="builder-opt" style="display: flex; align-items: center; gap: 0.4rem; background: rgba(255,255,255,0.02); border: 1px solid var(--border-glass); padding: 0.4rem 0.6rem; border-radius: 6px; cursor: pointer; font-size: 0.75rem; color: var(--text-muted);">
+                  <input type="radio" name="cut-bangs" value="Blunt Bangs" style="margin: 0; accent-color: var(--accent-gold);">
+                  <span>Blunt Bangs</span>
+                </label>
+              </div>
+
+              <!-- Extras Grid -->
+              <div class="builder-section-title" style="font-size: 0.75rem; font-weight: 600; color: var(--text-main); margin-bottom: 0.5rem; text-transform: uppercase;">5. Custom Additions</div>
+              <div class="builder-options-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
+                <label class="builder-opt" style="display: flex; align-items: center; gap: 0.4rem; background: rgba(255,255,255,0.02); border: 1px solid var(--border-glass); padding: 0.4rem 0.6rem; border-radius: 6px; cursor: pointer; font-size: 0.75rem; color: var(--text-muted);">
+                  <input type="checkbox" name="cut-extras" value="Face-Framing Layers" style="margin: 0; accent-color: var(--accent-gold);">
+                  <span>Face-Framing</span>
+                </label>
+                <label class="builder-opt" style="display: flex; align-items: center; gap: 0.4rem; background: rgba(255,255,255,0.02); border: 1px solid var(--border-glass); padding: 0.4rem 0.6rem; border-radius: 6px; cursor: pointer; font-size: 0.75rem; color: var(--text-muted);">
+                  <input type="checkbox" name="cut-extras" value="Texturizing" style="margin: 0; accent-color: var(--accent-gold);">
+                  <span>Texturizing</span>
+                </label>
+                <label class="builder-opt" style="display: flex; align-items: center; gap: 0.4rem; background: rgba(255,255,255,0.02); border: 1px solid var(--border-glass); padding: 0.4rem 0.6rem; border-radius: 6px; cursor: pointer; font-size: 0.75rem; color: var(--text-muted);">
+                  <input type="checkbox" name="cut-extras" value="Split End Trimming" style="margin: 0; accent-color: var(--accent-gold);">
+                  <span>Split End Trim</span>
+                </label>
+                <label class="builder-opt" style="display: flex; align-items: center; gap: 0.4rem; background: rgba(255,255,255,0.02); border: 1px solid var(--border-glass); padding: 0.4rem 0.6rem; border-radius: 6px; cursor: pointer; font-size: 0.75rem; color: var(--text-muted);">
+                  <input type="checkbox" name="cut-extras" value="Scalp Care" style="margin: 0; accent-color: var(--accent-gold);">
+                  <span>Scalp Care</span>
+                </label>
+              </div>
             </div>
           </div>
 
@@ -207,9 +279,9 @@
           <div class="glass-card lab-viewport">
             <div class="card-glow"></div>
             <div class="viewport-header">
-              <h4>Live Style Matcher</h4>
+              <h4>Interactive Lookbook & Stylist's Arcade</h4>
               <div class="telemetry-badge" id="telemetry-mode" style="background: rgba(212, 163, 115, 0.12); color: var(--accent-gold);">
-                Sticker Matcher Mode
+                Arcade Game Mode
               </div>
             </div>
 
@@ -237,18 +309,46 @@
               </div>
             </div>
             
-            <div class="canvas-wrapper">
-              <!-- Flash effect overlay -->
-              <div class="camera-flash" id="camera-flash-effect"></div>
-              <!-- Biometric scanning overlay scanner lines -->
-              <div class="scanner-line" id="scanner-beam"></div>
-              <canvas id="hair-canvas" width="600" height="400"></canvas>
-              <div class="canvas-instructions" id="viewport-helper">Click & Drag Hairstyle to Align Over Face</div>
+            <div class="canvas-wrapper" style="position: relative;">
+              <canvas id="hair-canvas" width="600" height="400" style="display: block; width: 100%; height: 100%;"></canvas>
+              
+              <!-- Game Start Screen Overlay -->
+              <div id="game-start-overlay" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(9, 8, 18, 0.92); backdrop-filter: blur(8px); display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 2rem; z-index: 10;">
+                <div style="font-size: 2.2rem; margin-bottom: 0.5rem; filter: drop-shadow(0 0 10px rgba(212, 163, 115, 0.4));">✂️ STYLE CATCHER 🧴</div>
+                <div style="font-size: 0.75rem; color: var(--accent-gold); font-weight: 600; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 1rem;">Pixel Perfect Hair Arcade</div>
+                <p style="font-size: 0.82rem; color: var(--text-muted); max-width: 380px; line-height: 1.5; margin-bottom: 1.5rem;">
+                  Move your mouse/touch left & right to slide the styling basket! Catch scissors, shampoo, and blow dryers. Avoid bad hair day storm clouds! Reach 100 points to unlock your VIP Discount code!
+                </p>
+                <button id="btn-start-game" class="btn-primary" style="padding: 0.65rem 1.8rem; border-radius: 30px; font-size: 0.85rem; font-weight: 700; cursor: pointer; box-shadow: 0 0 15px rgba(212, 163, 115, 0.4);">
+                  Play & Win 15% Off
+                </button>
+              </div>
+
+              <!-- Game Over / Victory Overlay -->
+              <div id="game-over-overlay" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(9, 8, 18, 0.94); backdrop-filter: blur(8px); display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 2rem; z-index: 10;">
+                <div id="game-result-title" style="font-size: 2rem; margin-bottom: 0.5rem; color: var(--accent-gold);">Game Over</div>
+                <p id="game-result-desc" style="font-size: 0.82rem; color: var(--text-muted); max-width: 380px; line-height: 1.5; margin-bottom: 1.5rem;">You scored 0 points. Better luck next time!</p>
+                
+                <!-- Code Box -->
+                <div id="game-code-box" style="display: none; background: rgba(212, 163, 115, 0.08); border: 1px dashed var(--accent-gold); padding: 0.75rem 1.5rem; border-radius: 8px; margin-bottom: 1.5rem;">
+                  <span style="display: block; font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px;">Your VIP Discount Code</span>
+                  <strong style="font-size: 1.3rem; color: var(--text-main); font-family: var(--font-code); letter-spacing: 2px;">STYLEPRO15</strong>
+                </div>
+
+                <div style="display: flex; gap: 0.75rem;">
+                  <button id="btn-restart-game" class="btn-secondary" style="padding: 0.55rem 1.3rem; border-radius: 20px; font-size: 0.8rem; border-color: rgba(255, 255, 255, 0.1); cursor: pointer;">
+                    Play Again
+                  </button>
+                  <button id="btn-claim-reward" class="btn-primary" style="display: none; padding: 0.55rem 1.3rem; border-radius: 20px; font-size: 0.8rem; cursor: pointer;">
+                    Apply Coupon
+                  </button>
+                </div>
+              </div>
             </div>
 
             <div class="viewport-telemetry" style="justify-content: flex-end;">
               <button id="btn-capture-snapshot" class="btn-primary" style="padding: 0.55rem 1.4rem; border-radius: 8px; font-size: 0.82rem; box-shadow: none;">
-                <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2.5" fill="none" style="margin-right: 0.35rem; vertical-align: middle; display: inline-block;"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>Save Styling Blueprint
+                <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2.5" fill="none" style="margin-right: 0.35rem; vertical-align: middle; display: inline-block;"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>Save Styling Recipe
               </button>
             </div>
           </div>

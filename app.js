@@ -207,36 +207,34 @@ function init3DStylingLab() {
   if (!canvas) return null;
   const ctx = canvas.getContext('2d');
   
-  // Controls & UI
-  const colorSlider = document.getElementById('hair-color');
-  const scannerBeam = document.getElementById('scanner-beam');
-  const colorVal = document.getElementById('hair-color-val');
-  const colorVectorText = document.getElementById('color-vector-desc');
-  const modeTelemetry = document.getElementById('telemetry-mode');
-
-  // Webcam & Overlay UI
-  const btnWebcam = document.getElementById('btn-webcam');
-  const btnUpload = document.getElementById('btn-upload');
-  const fileInput = document.getElementById('portrait-file-input');
-  const webcamStream = document.getElementById('webcam-stream');
-  const alignmentBox = document.getElementById('alignment-controls-box');
-  const sliderScale = document.getElementById('face-img-scale');
-  const labelScale = document.getElementById('img-scale-val');
-  const btnRemovePortrait = document.getElementById('btn-remove-portrait');
+  // Game UI overlays & buttons
+  const startOverlay = document.getElementById('game-start-overlay');
+  const gameOverOverlay = document.getElementById('game-over-overlay');
+  const btnStartGame = document.getElementById('btn-start-game');
+  const btnRestartGame = document.getElementById('btn-restart-game');
+  const btnClaimReward = document.getElementById('btn-claim-reward');
+  const resultTitle = document.getElementById('game-result-title');
+  const resultDesc = document.getElementById('game-result-desc');
+  const codeBox = document.getElementById('game-code-box');
   const btnCaptureSnapshot = document.getElementById('btn-capture-snapshot');
-  const cameraFlash = document.getElementById('camera-flash-effect');
 
-  // Overlay state variables
-  let overlayImage = null; // HTMLVideoElement or HTMLImageElement
-  let isVideoOverlay = false;
-  let streamObject = null;
-  
-  // Hairstyle Sticker variables
+  // Lookbook cards & data
+  const carouselCards = document.querySelectorAll('.carousel-card');
   let activeStyleName = 'bob';
-  let hairOffsetX = canvas.width / 2;
-  let hairOffsetY = canvas.height / 2 - 20;
-  let hairScale = 1.0;
-  let hairHue = 330;
+
+  // Game active variables
+  let gameActive = false;
+  let score = 0;
+  let lives = 3;
+  let basketX = canvas.width / 2;
+  const basketWidth = 90;
+  const basketHeight = 22;
+  let gameItems = [];
+  let scorePopups = [];
+  let gameRewardUnlocked = false;
+  let highscore = parseInt(localStorage.getItem('style_catcher_highscore') || '0');
+  let isScanning = false;
+  let scanProgress = 0;
 
   // Lookbook metadata
   const lookbookData = {
@@ -289,6 +287,7 @@ function init3DStylingLab() {
 
   // Set default details
   updateLookbookDetails('bob');
+  updateStyleRecipe();
 
   function updateLookbookDetails(styleKey) {
     const data = lookbookData[styleKey];
@@ -313,205 +312,186 @@ function init3DStylingLab() {
   }
 
   // Carousel click card listeners
-  const carouselCards = document.querySelectorAll('.carousel-card');
   carouselCards.forEach(card => {
     card.addEventListener('click', () => {
       carouselCards.forEach(c => c.classList.remove('active'));
       card.classList.add('active');
-
       activeStyleName = card.getAttribute('data-style') || 'bob';
-      const hue = parseInt(card.getAttribute('data-hue') || '330');
-
-      if (colorSlider) {
-        colorSlider.value = hue;
-        colorSlider.dispatchEvent(new Event('input'));
-      }
-      
       updateLookbookDetails(activeStyleName);
+      updateStyleRecipe();
     });
   });
 
-  // Setup scale slider listener
-  sliderScale?.addEventListener('input', (e) => {
-    hairScale = parseFloat(e.target.value);
-    if (labelScale) labelScale.textContent = `${hairScale.toFixed(2)}x`;
-  });
-
-  // Setup color slider listener
-  colorSlider?.addEventListener('input', (e) => {
-    hairHue = parseInt(e.target.value);
+  // Compile checklist options into the style recipe
+  function updateStyleRecipe() {
+    const selectedLength = document.querySelector('input[name="cut-length"]:checked')?.value || "Short Crop";
     
-    // Update color label
-    if (colorVal) {
-      let colorName = "Warm Copper";
-      if (hairHue >= 320 || hairHue < 15) colorName = "Rose Gold";
-      else if (hairHue >= 15 && hairHue < 45) colorName = "Golden Copper";
-      else if (hairHue >= 45 && hairHue < 90) colorName = "Honey Blonde";
-      else if (hairHue >= 90 && hairHue < 170) colorName = "Jade Mint";
-      else if (hairHue >= 170 && hairHue < 250) colorName = "Ice Balayage";
-      else if (hairHue >= 250 && hairHue < 320) colorName = "Ultra Violet";
-      colorVal.textContent = `${hairHue}° (${colorName})`;
-      if (colorVectorText) {
-        colorVectorText.textContent = `HSL(${hairHue}°, 85%, 55%)`;
-      }
-    }
-  });
+    const selectedColors = [];
+    document.querySelectorAll('input[name="cut-color"]:checked').forEach(cb => {
+      selectedColors.push(cb.value);
+    });
+    const colorText = selectedColors.length > 0 ? selectedColors.join(', ') : "Natural / No Tint";
 
-  // Direct Drag-to-Position on Canvas
-  let isDraggingHair = false;
-  let dragStart = { x: 0, y: 0 };
-  
-  canvas.addEventListener('mousedown', (e) => {
-    const rect = canvas.getBoundingClientRect();
-    const mx = e.clientX - rect.left;
-    const my = e.clientY - rect.top;
+    const selectedTexture = document.querySelector('input[name="cut-texture"]:checked')?.value || "Glass Straight";
+    const selectedBangs = document.querySelector('input[name="cut-bangs"]:checked')?.value || "No Bangs";
+
+    const selectedExtras = [];
+    document.querySelectorAll('input[name="cut-extras"]:checked').forEach(cb => {
+      selectedExtras.push(cb.value);
+    });
+    const extrasText = selectedExtras.length > 0 ? selectedExtras.join(', ') : "None";
+
+    const styleData = lookbookData[activeStyleName] || {};
     
-    isDraggingHair = true;
-    dragStart.x = mx - hairOffsetX;
-    dragStart.y = my - hairOffsetY;
-  });
-  
-  canvas.addEventListener('mousemove', (e) => {
-    if (!isDraggingHair) return;
-    const rect = canvas.getBoundingClientRect();
-    const mx = e.clientX - rect.left;
-    const my = e.clientY - rect.top;
-    
-    hairOffsetX = mx - dragStart.x;
-    hairOffsetY = my - dragStart.y;
-  });
-  
-  canvas.addEventListener('mouseup', () => {
-    isDraggingHair = false;
-  });
-  canvas.addEventListener('mouseleave', () => {
-    isDraggingHair = false;
-  });
-  
-  // Touch support for mobile devices
-  canvas.addEventListener('touchstart', (e) => {
-    if (e.touches.length === 1) {
-      const rect = canvas.getBoundingClientRect();
-      const mx = e.touches[0].clientX - rect.left;
-      const my = e.touches[0].clientY - rect.top;
-      isDraggingHair = true;
-      dragStart.x = mx - hairOffsetX;
-      dragStart.y = my - hairOffsetY;
-    }
-  });
-  canvas.addEventListener('touchmove', (e) => {
-    if (!isDraggingHair || e.touches.length !== 1) return;
-    const rect = canvas.getBoundingClientRect();
-    const mx = e.touches[0].clientX - rect.left;
-    const my = e.touches[0].clientY - rect.top;
-    hairOffsetX = mx - dragStart.x;
-    hairOffsetY = my - dragStart.y;
-    e.preventDefault();
-  });
-  canvas.addEventListener('touchend', () => {
-    isDraggingHair = false;
-  });
+    let recipe = `Base Style: ${styleData.title || activeStyleName.toUpperCase()}\n` +
+                 `· Length: ${selectedLength}\n` +
+                 `· Color Finish: ${colorText}\n` +
+                 `· Texture Style: ${selectedTexture}\n` +
+                 `· Bangs/Fringe: ${selectedBangs}\n` +
+                 `· Custom Extras: ${extrasText}`;
 
-  // Activate Camera streaming
-  btnWebcam?.addEventListener('click', async () => {
-    if (btnWebcam.classList.contains('active')) {
-      stopCameraStream();
-    } else {
-      try {
-        stopCameraStream(); // clear any previous upload or stream
-        
-        streamObject = await navigator.mediaDevices.getUserMedia({ 
-          video: { width: 640, height: 480, facingMode: 'user' } 
-        });
-        
-        if (webcamStream) {
-          webcamStream.srcObject = streamObject;
-          webcamStream.play();
-          overlayImage = webcamStream;
-          isVideoOverlay = true;
-        }
-
-        btnWebcam.classList.add('active');
-        btnUpload?.classList.remove('active');
-        if (alignmentBox) alignmentBox.style.display = 'block';
-      } catch (err) {
-        alert("Camera Access Denied: Please verify permissions or upload a portrait photo instead.");
-        console.error(err);
-      }
-    }
-  });
-
-  // Upload Portrait
-  btnUpload?.addEventListener('click', () => {
-    fileInput?.click();
-  });
-
-  fileInput?.addEventListener('change', (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const img = new Image();
-      img.onload = () => {
-        stopCameraStream(); // clear stream if active
-        overlayImage = img;
-        isVideoOverlay = false;
-        
-        btnUpload?.classList.add('active');
-        btnWebcam?.classList.remove('active');
-        if (alignmentBox) alignmentBox.style.display = 'block';
-      };
-      img.src = event.target.result;
-    };
-    reader.readAsDataURL(file);
-  });
-
-  // Remove Portrait button
-  btnRemovePortrait?.addEventListener('click', () => {
-    stopCameraStream();
-  });
-
-  function stopCameraStream() {
-    overlayImage = null;
-    isVideoOverlay = false;
-    
-    if (streamObject) {
-      streamObject.getTracks().forEach(track => track.stop());
-      streamObject = null;
-    }
-    if (webcamStream) {
-      webcamStream.srcObject = null;
+    if (gameRewardUnlocked) {
+      recipe += `\n· Coupon Applied: STYLEPRO15 (15% Off VIP)`;
     }
 
-    btnWebcam?.classList.remove('active');
-    btnUpload?.classList.remove('active');
-    if (alignmentBox) alignmentBox.style.display = 'none';
-
-    // Reset position and scale
-    hairOffsetX = canvas.width / 2;
-    hairOffsetY = canvas.height / 2 - 20;
-    hairScale = 1.0;
-    if (sliderScale) sliderScale.value = 1.0;
-    if (labelScale) labelScale.textContent = '1.00x';
+    globalBookingState.styleRecipe = recipe;
   }
 
-  // Capture snapshot
-  btnCaptureSnapshot?.addEventListener('click', () => {
-    if (cameraFlash) {
-      cameraFlash.classList.add('flash-active');
-      setTimeout(() => cameraFlash.classList.remove('flash-active'), 600);
+  // Bind preferred cut builder checkbox listeners
+  document.querySelectorAll('#preferred-cut-builder-box input').forEach(input => {
+    input.addEventListener('change', updateStyleRecipe);
+  });
+
+  // Track player coordinates
+  canvas.addEventListener('mousemove', (e) => {
+    if (!gameActive) return;
+    const rect = canvas.getBoundingClientRect();
+    const mx = e.clientX - rect.left;
+    basketX = Math.max(basketWidth / 2, Math.min(canvas.width - basketWidth / 2, mx));
+  });
+
+  canvas.addEventListener('touchmove', (e) => {
+    if (!gameActive || e.touches.length !== 1) return;
+    const rect = canvas.getBoundingClientRect();
+    const mx = e.touches[0].clientX - rect.left;
+    basketX = Math.max(basketWidth / 2, Math.min(canvas.width - basketWidth / 2, mx));
+    e.preventDefault();
+  }, { passive: false });
+
+  // Game UI Click Handlers
+  btnStartGame?.addEventListener('click', () => {
+    if (startOverlay) startOverlay.style.display = 'none';
+    startGame();
+  });
+
+  btnRestartGame?.addEventListener('click', () => {
+    if (gameOverOverlay) gameOverOverlay.style.display = 'none';
+    startGame();
+  });
+
+  btnClaimReward?.addEventListener('click', () => {
+    if (gameOverOverlay) gameOverOverlay.style.display = 'none';
+    // Open chat drawer automatically
+    const drawer = document.getElementById('chat-drawer');
+    if (drawer) drawer.classList.add('open');
+  });
+
+  // Game state handlers
+  function startGame() {
+    score = 0;
+    lives = 3;
+    gameItems = [];
+    scorePopups = [];
+    gameActive = true;
+  }
+
+  function endGame() {
+    gameActive = false;
+    
+    if (score > highscore) {
+      highscore = score;
+      localStorage.setItem('style_catcher_highscore', highscore.toString());
     }
 
-    // Export current canvas frame
-    const dataURL = canvas.toDataURL('image/png');
-    globalBookingState.capturedImage = dataURL;
+    if (score >= 100) {
+      gameRewardUnlocked = true;
+      updateStyleRecipe(); // Append coupon to prescription receipt
+      if (resultTitle) resultTitle.innerHTML = "🎉 VIP VICTORY! 🎉";
+      if (resultDesc) resultDesc.textContent = `Amazing skill! You scored ${score} points and unlocked your VIP Stylist Discount!`;
+      if (codeBox) codeBox.style.display = 'block';
+      if (btnClaimReward) btnClaimReward.style.display = 'inline-block';
+    } else {
+      if (resultTitle) resultTitle.textContent = "Game Over";
+      if (resultDesc) resultDesc.textContent = `You scored ${score} points. Reach 100 points to unlock the 15% VIP discount code!`;
+      if (codeBox) codeBox.style.display = 'none';
+      if (btnClaimReward) btnClaimReward.style.display = 'none';
+    }
 
-    // Create recipe string
-    const styleData = lookbookData[activeStyleName] || {};
-    globalBookingState.styleRecipe = `Style: ${styleData.title || activeStyleName.toUpperCase()}, Color Hue: ${hairHue}°, Price: ${styleData.price || 'R 650'}`;
+    if (gameOverOverlay) gameOverOverlay.style.display = 'flex';
+  }
 
-    // Open chat drawer and notify user
+  function spawnItem() {
+    const itemPool = [
+      { emoji: '🧴', points: 10, type: 'good', color: '#d4a373', name: 'Shampoo' },
+      { emoji: '✂️', points: 15, type: 'good', color: '#e07a5f', name: 'Scissors' },
+      { emoji: '💨', points: 20, type: 'good', color: '#f3f0f7', name: 'Dryer' },
+      { emoji: '✨', points: 25, type: 'good', color: '#ffd700', name: 'Sparkles' },
+      { emoji: '☁️', points: -15, type: 'bad', color: '#555566', name: 'Bad Hair Cloud' },
+      { emoji: '🪮', points: -10, type: 'bad', color: '#ff4a4a', name: 'Tangled Comb' }
+    ];
+
+    // Pick random item
+    const proto = itemPool[Math.floor(Math.random() * itemPool.length)];
+    const speed = 2.0 + Math.random() * 2.8 + (score / 150); // Speed scales up slightly with score
+    
+    gameItems.push({
+      x: Math.random() * (canvas.width - 60) + 30,
+      y: -20,
+      speed: speed,
+      emoji: proto.emoji,
+      points: proto.points,
+      type: proto.type,
+      color: proto.color,
+      name: proto.name,
+      rotation: Math.random() * Math.PI
+    });
+  }
+
+  function createScorePopup(x, y, text, color) {
+    scorePopups.push({
+      x: x,
+      y: y,
+      text: text,
+      color: color,
+      alpha: 1.0,
+      vy: -1.2
+    });
+  }
+
+  // Capture snapshot / prescription card receipt handler
+  btnCaptureSnapshot?.addEventListener('click', () => {
+    updateStyleRecipe(); // ensure latest state
+    
+    // Save to booking state
+    globalBookingState.service = lookbookData[activeStyleName]?.title || activeStyleName;
+    globalBookingState.price = lookbookData[activeStyleName]?.price || "R 650";
+
+    // Play quick visual flash
+    const flash = document.getElementById('camera-flash-effect') || document.createElement('div');
+    if (!document.getElementById('camera-flash-effect')) {
+      flash.id = 'camera-flash-effect';
+      flash.className = 'camera-flash';
+      canvas.parentElement.appendChild(flash);
+    }
+    flash.classList.add('flash-active');
+    setTimeout(() => flash.classList.remove('flash-active'), 500);
+
+    // Copy code automatically to clipboard if coupon is unlocked
+    if (gameRewardUnlocked) {
+      navigator.clipboard.writeText("STYLEPRO15").catch(() => {});
+    }
+
+    // Open chat drawer
     const drawer = document.getElementById('chat-drawer');
     const badge = document.getElementById('chat-notification');
     if (drawer) {
@@ -527,9 +507,17 @@ function init3DStylingLab() {
         const msg = document.createElement('div');
         msg.id = id;
         msg.className = 'chat-bubble bot-message';
-        msg.innerHTML = `<p><strong>📸 Style Blueprint Captured!</strong><br>` +
-                        `I've saved your custom look: <br><i>${globalBookingState.styleRecipe}</i><br><br>` +
-                        `When you book, I will generate a downloadable Stylist Receipt Card with your portrait and selected style specifications!</p>`;
+        
+        let rewardNote = "";
+        if (gameRewardUnlocked) {
+          rewardNote = `<br><span style="color: var(--accent-gold); font-weight:700;">🎁 15% VIP Coupon [STYLEPRO15] Applied! (Copied to Clipboard)</span>`;
+        }
+
+        msg.innerHTML = `<p><strong>📝 Styling Recipe Locked In!</strong><br>` +
+                        `I've formatted your custom prescription details to send to the stylist:<br>` +
+                        `<pre style="background:rgba(0,0,0,0.2); padding:0.5rem; border-radius:6px; font-size:0.75rem; color:var(--text-primary); margin-top:0.5rem; white-space:pre-wrap; font-family:inherit;">${globalBookingState.styleRecipe}</pre>` +
+                        `${rewardNote}<br>` +
+                        `When you book your appointment, this recipe will be attached so your stylist can prep in advance!</p>`;
         chatMessages.appendChild(msg);
         chatMessages.scrollTop = chatMessages.scrollHeight;
       }
@@ -544,7 +532,7 @@ function init3DStylingLab() {
 
     // Create HSL colors
     const baseColor = `hsla(${h}, 50%, 15%, 0.88)`;
-    const highlightColor1 = `hsla(${h}, 85%, 50%, 0.6)`;
+    const highlightColor1 = `hsla(${h}, 85%, 55%, 0.6)`;
     const highlightColor2 = `hsla(${(h + 20) % 360}, 90%, 65%, 0.5)`;
     const shadowColor = `rgba(0, 0, 0, 0.4)`;
 
@@ -778,43 +766,199 @@ function init3DStylingLab() {
     time += 0.04;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // DRAW PORTRAIT IMAGE BACKDROP IF ACTIVE
-    if (overlayImage) {
-      ctx.drawImage(overlayImage, 0, 0, canvas.width, canvas.height);
+    if (gameActive) {
+      // 1. Draw arcade background grid
+      ctx.fillStyle = '#090812';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      ctx.strokeStyle = 'rgba(212, 163, 115, 0.04)';
+      ctx.lineWidth = 1;
+      const gridSize = 40;
+      for (let x = 0; x < canvas.width; x += gridSize) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, canvas.height);
+        ctx.stroke();
+      }
+      for (let y = 0; y < canvas.height; y += gridSize) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(canvas.width, y);
+        ctx.stroke();
+      }
+
+      // Spawning logic
+      if (Math.random() < 0.025) {
+        spawnItem();
+      }
+
+      // 2. Draw & Update Items
+      for (let i = gameItems.length - 1; i >= 0; i--) {
+        const item = gameItems[i];
+        item.y += item.speed;
+        item.rotation += 0.02;
+
+        // Collision Check
+        const basketY = canvas.height - 35;
+        if (item.y + 12 >= basketY && item.y - 12 <= basketY + basketHeight &&
+            item.x + 12 >= basketX - basketWidth / 2 && item.x - 12 <= basketX + basketWidth / 2) {
+          
+          if (item.type === 'good') {
+            score += item.points;
+            createScorePopup(item.x, item.y, `+${item.points}`, '#d4a373');
+          } else {
+            lives--;
+            score = Math.max(0, score + item.points);
+            createScorePopup(item.x, item.y, `${item.points} ❤️-1`, '#ff4a4a');
+            if (lives <= 0) {
+              endGame();
+            }
+          }
+          gameItems.splice(i, 1);
+          continue;
+        }
+
+        // Out of bounds
+        if (item.y > canvas.height + 25) {
+          gameItems.splice(i, 1);
+          continue;
+        }
+
+        // Draw falling item
+        ctx.save();
+        ctx.translate(item.x, item.y);
+        ctx.rotate(item.rotation);
+        ctx.shadowColor = item.color;
+        ctx.shadowBlur = 10;
+        ctx.font = '24px Outfit';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(item.emoji, 0, 0);
+        ctx.restore();
+      }
+
+      // 3. Draw Player Basket Tray
+      ctx.save();
+      ctx.shadowColor = 'rgba(212, 163, 115, 0.4)';
+      ctx.shadowBlur = 15;
+      ctx.fillStyle = 'rgba(9, 8, 18, 0.7)';
+      ctx.strokeStyle = '#d4a373';
+      ctx.lineWidth = 2.5;
+      
+      ctx.beginPath();
+      if (ctx.roundRect) {
+        ctx.roundRect(basketX - basketWidth / 2, canvas.height - 35, basketWidth, basketHeight, [0, 0, 8, 8]);
+      } else {
+        ctx.rect(basketX - basketWidth / 2, canvas.height - 35, basketWidth, basketHeight);
+      }
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.arc(basketX - basketWidth / 2, canvas.height - 24, 4, 0, Math.PI * 2);
+      ctx.arc(basketX + basketWidth / 2, canvas.height - 24, 4, 0, Math.PI * 2);
+      ctx.stroke();
+
+      ctx.fillStyle = '#f3f0f7';
+      ctx.font = '700 9px Outfit';
+      ctx.textAlign = 'center';
+      ctx.fillText('STYLING TRAY', basketX, canvas.height - 21);
+      ctx.restore();
+
+      // 4. Update & Draw Score Popups
+      for (let i = scorePopups.length - 1; i >= 0; i--) {
+        const popup = scorePopups[i];
+        popup.y += popup.vy;
+        popup.alpha -= 0.025;
+        if (popup.alpha <= 0) {
+          scorePopups.splice(i, 1);
+          continue;
+        }
+        ctx.save();
+        ctx.globalAlpha = popup.alpha;
+        ctx.fillStyle = popup.color;
+        ctx.font = 'bold 12px Outfit';
+        ctx.textAlign = 'center';
+        ctx.fillText(popup.text, popup.x, popup.y);
+        ctx.restore();
+      }
+
+      // 5. Draw HUD Panel
+      ctx.fillStyle = 'rgba(9, 8, 18, 0.7)';
+      ctx.fillRect(0, 0, canvas.width, 35);
+      ctx.strokeStyle = 'var(--border-glass)';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(0, 35);
+      ctx.lineTo(canvas.width, 35);
+      ctx.stroke();
+
+      // Score Text
+      ctx.fillStyle = '#f3f0f7';
+      ctx.font = '700 13px Outfit';
+      ctx.textAlign = 'left';
+      ctx.fillText(`SCORE: ${score} / 100`, 15, 22);
+
+      // Best Score
+      ctx.fillStyle = 'var(--accent-gold)';
+      ctx.fillText(`BEST: ${Math.max(highscore, score)}`, 140, 22);
+
+      // Lives Hearts
+      ctx.textAlign = 'right';
+      let hearts = '';
+      for (let h = 0; h < lives; h++) hearts += '❤️';
+      ctx.fillText(hearts || '💔', canvas.width - 15, 22);
+
     } else {
-      ctx.fillStyle = '#100e17';
+      // Game Offline - Standby Hairstyle Preview Mode
+      ctx.fillStyle = '#090812';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       
-      ctx.fillStyle = 'rgba(212, 163, 115, 0.25)';
-      ctx.font = '14px Outfit';
-      ctx.textAlign = 'center';
-      ctx.fillText('[ Photo Backdrop Offline - Style Preview Mode ]', canvas.width / 2, canvas.height / 2 + 50);
-
-      // Draw a beautiful abstract face shape placeholder
-      ctx.beginPath();
-      ctx.strokeStyle = 'rgba(212, 163, 115, 0.15)';
-      ctx.arc(canvas.width / 2, canvas.height / 2 - 20, 75, 0, Math.PI * 2);
-      ctx.stroke();
-    }
-
-    // Draw the style scanner beam line if active
-    if (scannerBeam?.classList.contains('scanning')) {
-      const scanY = (Math.sin(time * 2) * 0.5 + 0.5) * canvas.height;
-      ctx.beginPath();
-      ctx.strokeStyle = 'rgba(212, 163, 115, 0.6)';
-      ctx.lineWidth = 3;
-      ctx.shadowColor = 'var(--accent-gold)';
-      ctx.shadowBlur = 10;
-      ctx.moveTo(0, scanY);
-      ctx.lineTo(canvas.width, scanY);
-      ctx.stroke();
-      ctx.shadowColor = 'transparent';
-      ctx.shadowBlur = 0;
+      // Draw background scan grid lines
+      ctx.strokeStyle = 'rgba(212, 163, 115, 0.03)';
       ctx.lineWidth = 1;
-    }
+      for (let i = 0; i < canvas.width; i += 50) {
+        ctx.beginPath();
+        ctx.moveTo(i, 0);
+        ctx.lineTo(i, canvas.height);
+        ctx.stroke();
+      }
 
-    // DRAW THE STICKER HAIRSTYLE OVERLAY
-    drawHairstyle(ctx, activeStyleName, hairOffsetX, hairOffsetY, hairScale, hairHue);
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
+      ctx.font = '12px Outfit';
+      ctx.textAlign = 'center';
+      ctx.fillText('[ STYLIST\'S ARCADE STANDBY ]', canvas.width / 2, canvas.height / 2 + 80);
+
+      // Draw biometric scanner effect if quiz is scanning
+      if (isScanning) {
+        scanProgress += 0.05;
+        const scanY = (Math.sin(time * 2.5) * 0.5 + 0.5) * canvas.height;
+        ctx.beginPath();
+        ctx.strokeStyle = 'rgba(212, 163, 115, 0.6)';
+        ctx.lineWidth = 3;
+        ctx.shadowColor = 'var(--accent-gold)';
+        ctx.shadowBlur = 10;
+        ctx.moveTo(0, scanY);
+        ctx.lineTo(canvas.width, scanY);
+        ctx.stroke();
+        ctx.shadowColor = 'transparent';
+        ctx.shadowBlur = 0;
+        ctx.lineWidth = 1;
+
+        ctx.fillStyle = 'var(--accent-gold)';
+        ctx.font = '700 13px Outfit';
+        ctx.fillText('Scanning Biometrics...', canvas.width / 2, canvas.height / 2 + 100);
+      }
+
+      // Draw static preset hairstyle silhouette in center of screen
+      let currentHue = 330;
+      if (activeStyleName === 'pixie') currentHue = 30;
+      else if (activeStyleName === 'waves') currentHue = 30;
+      else if (activeStyleName === 'afro') currentHue = 20;
+      else if (activeStyleName === 'curly') currentHue = 330;
+
+      drawHairstyle(ctx, activeStyleName, canvas.width / 2, canvas.height / 2 - 20, 1.05, currentHue);
+    }
 
     requestAnimationFrame(draw);
   }
@@ -822,9 +966,9 @@ function init3DStylingLab() {
 
   return {
     triggerBiometricScan: (callback) => {
-      scannerBeam?.classList.add('scanning');
+      isScanning = true;
       setTimeout(() => {
-        scannerBeam?.classList.remove('scanning');
+        isScanning = false;
         if (callback) callback();
       }, 2500);
     },
@@ -842,13 +986,8 @@ function init3DStylingLab() {
       }
 
       activeStyleName = lookbookKey;
-      hairHue = hueValNum || 330;
-      if (colorSlider) {
-        colorSlider.value = hairHue;
-        colorSlider.dispatchEvent(new Event('input'));
-      }
-      
       updateLookbookDetails(activeStyleName);
+      updateStyleRecipe();
     }
   };
 }
@@ -1388,12 +1527,18 @@ function generateAndDownloadReceiptImage(data) {
     ctx.fillText('STYLE RECIPE SPECIFICATION', startX, 255);
 
     ctx.fillStyle = '#f3f0f7';
-    ctx.font = '13px Outfit, sans-serif';
+    ctx.font = '11px Outfit, sans-serif';
     
-    // Split long recipe strings to fit nicely
+    // Split multi-line recipe strings to fit nicely on the voucher card
     const recipeStr = data.recipe || 'Classic Straight (Default)';
-    ctx.fillText(recipeStr, startX, 280);
-    ctx.fillText(`Treatment: ${data.service || 'Precision Design'}`, startX, 302);
+    const recipeLines = recipeStr.split('\n');
+    let currentY = 274;
+    recipeLines.forEach((line) => {
+      if (currentY < 320) {
+        ctx.fillText(line, startX, currentY);
+        currentY += 13;
+      }
+    });
 
     // Recommended Price Card Box
     ctx.fillStyle = 'rgba(212, 163, 115, 0.05)';

@@ -58,7 +58,9 @@ GitHub Pages provides free static hosting for HTML templates. To launch your sit
 ------------------------------------------------------------------------
 SECTION 5: INTEGRATING WITH AN EXISTING WIX SITE
 ------------------------------------------------------------------------
-If you already have a Wix website and want to use this custom interactive template (specifically the Hairstyle Lookbook & Matcher or client progress Tracker) on your Wix page, you can integrate it in three ways:
+Please note: This product is delivered as a premium, high-performance standalone HTML5 template (not a Wix native template) to preserve the custom pixel-perfect canvas gameplay, real-time styling checklist builder, and interactive AI chatbot experience. 
+
+However, if you already have a Wix website and wish to offer this styling arcade and consultation experience to your Wix visitors, you can easily integrate it in three ways:
 
 METHOD A: EMBED VIA HTML IFRAME (RECOMMENDED FOR THE INTERACTIVE MATCHER)
 1. In your Wix Editor, click the "+" button (Add Elements) -> select "Embed Code" -> click "HTML Embed".

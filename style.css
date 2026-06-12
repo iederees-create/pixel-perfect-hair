@@ -1915,3 +1915,30 @@ footer p {
   font-weight: 700;
   flex-shrink: 0;
 }
+
+/* Custom Style Catcher Arcade Game & Preferred Cut Builder Styles */
+.builder-opt {
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.builder-opt:hover {
+  background: rgba(212, 163, 115, 0.08) !important;
+  border-color: rgba(212, 163, 115, 0.3) !important;
+  color: var(--text-main) !important;
+}
+.builder-opt input:checked + span {
+  color: var(--accent-gold) !important;
+  font-weight: 600;
+}
+#game-code-box {
+  animation: codePulse 2s infinite ease-in-out;
+}
+@keyframes codePulse {
+  0%, 100% {
+    box-shadow: 0 0 5px rgba(212, 163, 115, 0.2);
+    border-color: rgba(212, 163, 115, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 15px rgba(212, 163, 115, 0.6);
+    border-color: var(--accent-gold);
+  }
+}
