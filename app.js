@@ -248,6 +248,27 @@ function init3DStylingLab() {
   let overlayOffsetX = 0;
   let overlayOffsetY = 0;
   let streamObject = null;
+  let activeStyleName = 'bob';
+
+  // Carousel click card listeners
+  const carouselCards = document.querySelectorAll('.carousel-card');
+  carouselCards.forEach(card => {
+    card.addEventListener('click', () => {
+      carouselCards.forEach(c => c.classList.remove('active'));
+      card.classList.add('active');
+
+      activeStyleName = card.getAttribute('data-style') || 'bob';
+      const preset = card.getAttribute('data-preset') || 'straight';
+      const len = parseFloat(card.getAttribute('data-length') || '4.5');
+      const hue = parseInt(card.getAttribute('data-hue') || '330');
+
+      if (styleSelect) styleSelect.value = preset;
+      if (lengthSlider) lengthSlider.value = len;
+      if (colorSlider) colorSlider.value = hue;
+
+      generateHairData();
+    });
+  });
 
   // Setup alignment values change listeners
   sliderScale?.addEventListener('input', (e) => {
@@ -748,24 +769,24 @@ function init3DStylingLab() {
       scannerBeam?.classList.add('scanning');
     } else {
       scannerBeam?.classList.remove('scanning');
+     // Draw Face Wireframe (Only draw if no portrait uploaded, or if biometrics is on)
+    if (!overlayImage || showBiometrics) {
+      ctx.beginPath();
+      ctx.strokeStyle = document.documentElement.getAttribute('data-theme') === 'light' 
+        ? 'rgba(9, 8, 18, 0.07)' 
+        : 'rgba(212, 163, 115, 0.08)';
+      ctx.lineWidth = 1;
+      
+      headLines.forEach(([i, j]) => {
+        const p1 = project(headVertices[i]);
+        const p2 = project(headVertices[j]);
+        if (p1.z > -0.8 && p2.z > -0.8) {
+          ctx.moveTo(p1.x, p1.y);
+          ctx.lineTo(p2.x, p2.y);
+        }
+      });
+      ctx.stroke();
     }
-
-    // Draw main Face Wireframe
-    ctx.beginPath();
-    ctx.strokeStyle = document.documentElement.getAttribute('data-theme') === 'light' 
-      ? 'rgba(9, 8, 18, 0.07)' 
-      : 'rgba(212, 163, 115, 0.08)';
-    ctx.lineWidth = 1;
-    
-    headLines.forEach(([i, j]) => {
-      const p1 = project(headVertices[i]);
-      const p2 = project(headVertices[j]);
-      if (p1.z > -0.8 && p2.z > -0.8) {
-        ctx.moveTo(p1.x, p1.y);
-        ctx.lineTo(p2.x, p2.y);
-      }
-    });
-    ctx.stroke();
 
     // Draw Biometric Scans (eye coordinates and alignment grids)
     if (showBiometrics) {
@@ -801,11 +822,54 @@ function init3DStylingLab() {
       ctx.setLineDash([]);
     }
 
+    // Helper function for custom styled offsets
+    function getHairShapeOffsets(strand, segmentPct) {
+      let dx = 0;
+      let dy = -length * 0.12 * segmentPct;
+      let dz = 0;
+
+      if (activeStyleName === 'bob') {
+        dy = -length * 0.10 * segmentPct;
+        if (segmentPct > 0.7) {
+          const curveFactor = (segmentPct - 0.7) * 3.5;
+          dx = (strand.root.x > 0 ? -0.16 : 0.16) * curveFactor;
+          dz = -0.06 * curveFactor;
+        }
+      } else if (activeStyleName === 'pixie') {
+        dy = -length * 0.05 * segmentPct;
+        dx = Math.sin(segmentPct * 4 + strand.root.x * 2) * 0.04;
+        dz = Math.cos(segmentPct * 4 + strand.root.z * 2) * 0.04;
+      } else if (activeStyleName === 'waves') {
+        dy = -length * 0.12 * segmentPct;
+        dx = Math.sin(segmentPct * 8 + strand.root.x * 3) * 0.15;
+        dz = Math.cos(segmentPct * 6 + strand.root.z * 3) * 0.15;
+      } else if (activeStyleName === 'afro') {
+        dy = -length * 0.05 * segmentPct + Math.cos(segmentPct * 30) * 0.05;
+        dx = Math.sin(segmentPct * 35 + strand.root.x * 8) * 0.08;
+        dz = Math.cos(segmentPct * 35 + strand.root.z * 8) * 0.08;
+      } else if (activeStyleName === 'curly') {
+        dy = -length * 0.13 * segmentPct;
+        dx = Math.sin(segmentPct * 20 + strand.root.x * 4) * 0.12;
+        dz = Math.cos(segmentPct * 20 + strand.root.z * 4) * 0.12;
+      }
+
+      // Wind physics
+      if (windSpeed > 0) {
+        const windOsc = Math.sin(time + strand.root.y * 3 + segmentPct * 2) * 0.04 * windSpeed;
+        dx += windOsc * segmentPct;
+        dz += Math.cos(time * 0.8 + strand.root.x * 2) * 0.03 * windSpeed * segmentPct;
+      }
+
+      return { dx, dy, dz };
+    }
+
     // Draw Hair Strands
     const steps = style === 'afro' ? 8 : 12;
+
+    // PASS 1: Thick Solid Volumetric Base
     hairStrands.forEach((strand) => {
       ctx.beginPath();
-      ctx.lineWidth = style === 'afro' ? 2 : 1.25;
+      ctx.lineWidth = activeStyleName === 'afro' ? 4 : 8;
 
       let prevProj = project({
         x: strand.root.x + strand.combOffset.x,
@@ -816,41 +880,54 @@ function init3DStylingLab() {
 
       for (let step = 1; step <= strand.maxSteps; step++) {
         const segmentPct = step / steps;
-        
-        let dx = 0;
-        let dy = -length * 0.12 * segmentPct;
-        let dz = 0;
-
-        if (style === 'wavy') {
-          dx = Math.sin(segmentPct * 6 + strand.root.x * 2) * 0.12;
-          dz = Math.cos(segmentPct * 5 + strand.root.z * 2) * 0.12;
-        } else if (style === 'curly') {
-          dx = Math.sin(segmentPct * 16 + strand.root.x * 4) * 0.08;
-          dz = Math.cos(segmentPct * 16 + strand.root.z * 4) * 0.08;
-        } else if (style === 'afro') {
-          dx = Math.sin(segmentPct * 35 + strand.root.x * 10) * 0.04;
-          dy = -length * 0.04 * segmentPct + Math.cos(segmentPct * 35) * 0.04;
-          dz = Math.cos(segmentPct * 35 + strand.root.z * 10) * 0.04;
-        }
-
-        // Apply wind physics
-        if (windSpeed > 0) {
-          const windOsc = Math.sin(time + strand.root.y * 3 + segmentPct * 2) * 0.04 * windSpeed;
-          dx += windOsc * segmentPct;
-          dz += Math.cos(time * 0.8 + strand.root.x * 2) * 0.03 * windSpeed * segmentPct;
-        }
+        const offset = getHairShapeOffsets(strand, segmentPct);
 
         const node3D = {
-          x: strand.root.x + strand.combOffset.x + dx,
-          y: strand.root.y + strand.combOffset.y + dy,
-          z: strand.root.z + strand.combOffset.z + dz
+          x: strand.root.x + strand.combOffset.x + offset.dx,
+          y: strand.root.y + strand.combOffset.y + offset.dy,
+          z: strand.root.z + strand.combOffset.z + offset.dz
+        };
+
+        const proj = project(node3D);
+
+        // Darker foundation color with low opacity
+        ctx.strokeStyle = `hsla(${hue}, 65%, 15%, 0.28)`;
+        ctx.lineTo(proj.x, proj.y);
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.moveTo(proj.x, proj.y);
+        prevProj = proj;
+      }
+    });
+
+    // PASS 2: Detailed Highlights
+    hairStrands.forEach((strand) => {
+      ctx.beginPath();
+      ctx.lineWidth = activeStyleName === 'afro' ? 1.8 : 1.25;
+
+      let prevProj = project({
+        x: strand.root.x + strand.combOffset.x,
+        y: strand.root.y + strand.combOffset.y,
+        z: strand.root.z + strand.combOffset.z
+      });
+      ctx.moveTo(prevProj.x, prevProj.y);
+
+      for (let step = 1; step <= strand.maxSteps; step++) {
+        const segmentPct = step / steps;
+        const offset = getHairShapeOffsets(strand, segmentPct);
+
+        const node3D = {
+          x: strand.root.x + strand.combOffset.x + offset.dx,
+          y: strand.root.y + strand.combOffset.y + offset.dy,
+          z: strand.root.z + strand.combOffset.z + offset.dz
         };
 
         const proj = project(node3D);
 
         const gradient = ctx.createLinearGradient(prevProj.x, prevProj.y, proj.x, proj.y);
-        gradient.addColorStop(0, `hsla(${hue}, 85%, 38%, ${0.3 + 0.4 * (1 - segmentPct)})`);
-        gradient.addColorStop(1, `hsla(${(hue + 12) % 360}, 95%, 68%, ${0.7 - 0.2 * segmentPct})`);
+        gradient.addColorStop(0, `hsla(${hue}, 85%, 38%, ${0.4 + 0.4 * (1 - segmentPct)})`);
+        gradient.addColorStop(1, `hsla(${(hue + 12) % 360}, 95%, 68%, ${0.85 - 0.25 * segmentPct})`);
 
         ctx.strokeStyle = gradient;
         ctx.lineTo(proj.x, proj.y);
