@@ -281,69 +281,225 @@
             <div class="viewport-header">
               <h4>Interactive Lookbook & Stylist's Arcade</h4>
               <div class="telemetry-badge" id="telemetry-mode" style="background: rgba(212, 163, 115, 0.12); color: var(--accent-gold);">
-                Arcade Game Mode
+                AI Visualizer Mode
               </div>
             </div>
 
             <!-- Hairstyle Presets Carousel -->
             <div class="style-carousel-row" id="style-carousel-row">
-              <div class="carousel-card active" data-style="bob" data-preset="straight" data-length="3.5" data-hue="330">
+              <!-- === BOBS === -->
+              <div class="carousel-card active" data-style="bob" data-preset="bob-sleek" data-length="3.5" data-hue="330">
                 <span class="carousel-card-icon">👩‍💼</span>
                 <span class="carousel-card-title">Sleek Bob</span>
               </div>
-              <div class="carousel-card" data-style="pixie" data-preset="straight" data-length="2.2" data-hue="30">
+              <div class="carousel-card" data-style="bob" data-preset="bob-french" data-length="3.0" data-hue="20">
+                <span class="carousel-card-icon">💇‍♀️</span>
+                <span class="carousel-card-title">Parisian Bob</span>
+              </div>
+              <div class="carousel-card" data-style="bob" data-preset="bob-asym" data-length="3.8" data-hue="180">
+                <span class="carousel-card-icon">👩‍🎤</span>
+                <span class="carousel-card-title">Asymmetric Bob</span>
+              </div>
+              <div class="carousel-card" data-style="bob" data-preset="bob-layered" data-length="4.2" data-hue="300">
+                <span class="carousel-card-icon">💁‍♀️</span>
+                <span class="carousel-card-title">Layered Bob</span>
+              </div>
+              <div class="carousel-card" data-style="bob" data-preset="bob-lob" data-length="4.8" data-hue="50">
+                <span class="carousel-card-icon">👩‍💼</span>
+                <span class="carousel-card-title">Long Bob</span>
+              </div>
+              <div class="carousel-card" data-style="bob" data-preset="bob-shaggy" data-length="3.6" data-hue="10">
+                <span class="carousel-card-icon">💇</span>
+                <span class="carousel-card-title">Shaggy Bob</span>
+              </div>
+              <div class="carousel-card" data-style="bob" data-preset="bob-blunt" data-length="3.2" data-hue="120">
+                <span class="carousel-card-icon">👩‍💼</span>
+                <span class="carousel-card-title">Blunt Bob</span>
+              </div>
+              <div class="carousel-card" data-style="bob" data-preset="bob-pageboy" data-length="2.8" data-hue="210">
+                <span class="carousel-card-icon">🧑‍💼</span>
+                <span class="carousel-card-title">Pageboy Bob</span>
+              </div>
+              <div class="carousel-card" data-style="bob" data-preset="bob-inverted" data-length="3.4" data-hue="340">
+                <span class="carousel-card-icon">👩‍🎤</span>
+                <span class="carousel-card-title">Inverted Bob</span>
+              </div>
+              <div class="carousel-card" data-style="bob" data-preset="bob-vintage" data-length="3.7" data-hue="40">
+                <span class="carousel-card-icon">👱‍♀️</span>
+                <span class="carousel-card-title">Vintage Bob</span>
+              </div>
+
+              <!-- === PIXIES === -->
+              <div class="carousel-card" data-style="pixie" data-preset="pixie-chic" data-length="2.2" data-hue="30">
                 <span class="carousel-card-icon">💇‍♀️</span>
                 <span class="carousel-card-title">Chic Pixie</span>
               </div>
-              <div class="carousel-card" data-style="waves" data-preset="wavy" data-length="5.6" data-hue="30">
+              <div class="carousel-card" data-style="pixie" data-preset="pixie-textured" data-length="1.8" data-hue="15">
+                <span class="carousel-card-icon">💇‍♂️</span>
+                <span class="carousel-card-title">Razor Pixie</span>
+              </div>
+              <div class="carousel-card" data-style="pixie" data-preset="pixie-spiky" data-length="2.0" data-hue="280">
+                <span class="carousel-card-icon">👩‍🎤</span>
+                <span class="carousel-card-title">Spiky Crop</span>
+              </div>
+              <div class="carousel-card" data-style="pixie" data-preset="pixie-shaved" data-length="1.5" data-hue="190">
+                <span class="carousel-card-icon">💇</span>
+                <span class="carousel-card-title">Undercut Pixie</span>
+              </div>
+              <div class="carousel-card" data-style="pixie" data-preset="pixie-feathered" data-length="2.4" data-hue="45">
+                <span class="carousel-card-icon">💁‍♀️</span>
+                <span class="carousel-card-title">Feathered Pixie</span>
+              </div>
+              <div class="carousel-card" data-style="pixie" data-preset="pixie-retro" data-length="2.5" data-hue="350">
+                <span class="carousel-card-icon">👱‍♀️</span>
+                <span class="carousel-card-title">Retro Pixie</span>
+              </div>
+              <div class="carousel-card" data-style="pixie" data-preset="pixie-curly" data-length="2.6" data-hue="25">
+                <span class="carousel-card-icon">👩‍🦱</span>
+                <span class="carousel-card-title">Curly Pixie</span>
+              </div>
+              <div class="carousel-card" data-style="pixie" data-preset="pixie-wispy" data-length="2.1" data-hue="110">
+                <span class="carousel-card-icon">💇‍♀️</span>
+                <span class="carousel-card-title">Wispy Pixie</span>
+              </div>
+              <div class="carousel-card" data-style="pixie" data-preset="pixie-tapered" data-length="1.7" data-hue="230">
+                <span class="carousel-card-icon">🧑‍🎤</span>
+                <span class="carousel-card-title">Tapered Crop</span>
+              </div>
+              <div class="carousel-card" data-style="pixie" data-preset="pixie-platinum" data-length="2.3" data-hue="180">
+                <span class="carousel-card-icon">👩‍🦳</span>
+                <span class="carousel-card-title">Platinum Pixie</span>
+              </div>
+
+              <!-- === WAVES === -->
+              <div class="carousel-card" data-style="waves" data-preset="waves-beach" data-length="5.6" data-hue="30">
                 <span class="carousel-card-icon">🧜‍♀️</span>
                 <span class="carousel-card-title">Beach Waves</span>
               </div>
-              <div class="carousel-card" data-style="afro" data-preset="afro" data-length="4.5" data-hue="20">
+              <div class="carousel-card" data-style="waves" data-preset="waves-mermaid" data-length="7.2" data-hue="320">
+                <span class="carousel-card-icon">🧜‍♀️</span>
+                <span class="carousel-card-title">Mermaid Waves</span>
+              </div>
+              <div class="carousel-card" data-style="waves" data-preset="waves-tousled" data-length="5.2" data-hue="10">
+                <span class="carousel-card-icon">👩‍🎤</span>
+                <span class="carousel-card-title">Tousled Shag</span>
+              </div>
+              <div class="carousel-card" data-style="waves" data-preset="waves-hollywood" data-length="6.5" data-hue="45">
+                <span class="carousel-card-icon">👱‍♀️</span>
+                <span class="carousel-card-title">Hollywood Waves</span>
+              </div>
+              <div class="carousel-card" data-style="waves" data-preset="waves-vintage" data-length="4.5" data-hue="340">
+                <span class="carousel-card-icon">👩‍💼</span>
+                <span class="carousel-card-title">Vintage Waves</span>
+              </div>
+              <div class="carousel-card" data-style="waves" data-preset="waves-wet" data-length="5.8" data-hue="200">
+                <span class="carousel-card-icon">🧜‍♀️</span>
+                <span class="carousel-card-title">Wet Gloss Waves</span>
+              </div>
+              <div class="carousel-card" data-style="waves" data-preset="waves-crimson" data-length="6.2" data-hue="0">
+                <span class="carousel-card-icon">👩‍🦰</span>
+                <span class="carousel-card-title">Crimson Waves</span>
+              </div>
+              <div class="carousel-card" data-style="waves" data-preset="waves-boho" data-length="6.8" data-hue="35">
+                <span class="carousel-card-icon">🌻</span>
+                <span class="carousel-card-title">Boho Waves</span>
+              </div>
+              <div class="carousel-card" data-style="waves" data-preset="waves-copper" data-length="6.0" data-hue="25">
+                <span class="carousel-card-icon">🌅</span>
+                <span class="carousel-card-title">Sunset Copper</span>
+              </div>
+              <div class="carousel-card" data-style="waves" data-preset="waves-pastel" data-length="6.4" data-hue="270">
+                <span class="carousel-card-icon">🦄</span>
+                <span class="carousel-card-title">Lavender Waves</span>
+              </div>
+
+              <!-- === AFRO === -->
+              <div class="carousel-card" data-style="afro" data-preset="afro-coils" data-length="4.5" data-hue="20">
                 <span class="carousel-card-icon">👩‍🦱</span>
                 <span class="carousel-card-title">Afro Coils</span>
               </div>
-              <div class="carousel-card" data-style="curly" data-preset="curly" data-length="6.2" data-hue="330">
+              <div class="carousel-card" data-style="afro" data-preset="afro-tapered" data-length="3.2" data-hue="15">
+                <span class="carousel-card-icon">🧑‍🦱</span>
+                <span class="carousel-card-title">Tapered Fro</span>
+              </div>
+              <div class="carousel-card" data-style="afro" data-preset="afro-mohawk" data-length="4.0" data-hue="340">
+                <span class="carousel-card-icon">🧑‍🎤</span>
+                <span class="carousel-card-title">Frohawk</span>
+              </div>
+              <div class="carousel-card" data-style="afro" data-preset="afro-puff" data-length="3.8" data-hue="25">
+                <span class="carousel-card-icon">👧</span>
+                <span class="carousel-card-title">Twin Puffs</span>
+              </div>
+              <div class="carousel-card" data-style="afro" data-preset="afro-spiral" data-length="4.8" data-hue="10">
+                <span class="carousel-card-icon">👩‍🦱</span>
+                <span class="carousel-card-title">Spiral Coil-Out</span>
+              </div>
+              <div class="carousel-card" data-style="afro" data-preset="afro-halo" data-length="5.2" data-hue="30">
+                <span class="carousel-card-icon">😇</span>
+                <span class="carousel-card-title">Halo Fro</span>
+              </div>
+              <div class="carousel-card" data-style="afro" data-preset="afro-highlight" data-length="4.7" data-hue="40">
+                <span class="carousel-card-icon">✨</span>
+                <span class="carousel-card-title">Honey Highlight Fro</span>
+              </div>
+              <div class="carousel-card" data-style="afro" data-preset="afro-bleached" data-length="3.5" data-hue="60">
+                <span class="carousel-card-icon">🧑‍🦲</span>
+                <span class="carousel-card-title">Bleached Fro</span>
+              </div>
+              <div class="carousel-card" data-style="afro" data-preset="afro-frohawk" data-length="4.2" data-hue="18">
+                <span class="carousel-card-icon">🐆</span>
+                <span class="carousel-card-title">Graduated Frohawk</span>
+              </div>
+              <div class="carousel-card" data-style="afro" data-preset="afro-crown" data-length="5.0" data-hue="22">
+                <span class="carousel-card-icon">👑</span>
+                <span class="carousel-card-title">Braided Crown Fro</span>
+              </div>
+
+              <!-- === CURLY === -->
+              <div class="carousel-card" data-style="curly" data-preset="curly-volume" data-length="6.2" data-hue="330">
                 <span class="carousel-card-icon">👩‍🦳</span>
                 <span class="carousel-card-title">Curly Volume</span>
               </div>
+              <div class="carousel-card" data-style="curly" data-preset="curly-bouncy" data-length="6.8" data-hue="20">
+                <span class="carousel-card-icon">🌀</span>
+                <span class="carousel-card-title">Bouncy Ringlets</span>
+              </div>
+              <div class="carousel-card" data-style="curly" data-preset="curly-botticelli" data-length="7.5" data-hue="45">
+                <span class="carousel-card-icon">🎨</span>
+                <span class="carousel-card-title">Botticelli Curls</span>
+              </div>
+              <div class="carousel-card" data-style="curly" data-preset="curly-shag" data-length="5.5" data-hue="15">
+                <span class="carousel-card-icon">👩‍🎤</span>
+                <span class="carousel-card-title">Curly Shag</span>
+              </div>
+              <div class="carousel-card" data-style="curly" data-preset="curly-messy" data-length="6.0" data-hue="300">
+                <span class="carousel-card-icon">🌪️</span>
+                <span class="carousel-card-title">Messy Ringlets</span>
+              </div>
+              <div class="carousel-card" data-style="curly" data-preset="curly-glamour" data-length="6.6" data-hue="40">
+                <span class="carousel-card-icon">🌟</span>
+                <span class="carousel-card-title">Glam Curls</span>
+              </div>
+              <div class="carousel-card" data-style="curly" data-preset="curly-corkscrew" data-length="5.8" data-hue="10">
+                <span class="carousel-card-icon">🌪️</span>
+                <span class="carousel-card-title">Corkscrew Spirals</span>
+              </div>
+              <div class="carousel-card" data-style="curly" data-preset="curly-crown" data-length="6.4" data-hue="340">
+                <span class="carousel-card-icon">👑</span>
+                <span class="carousel-card-title">Crown Spirals</span>
+              </div>
+              <div class="carousel-card" data-style="curly" data-preset="curly-cascading" data-length="7.0" data-hue="25">
+                <span class="carousel-card-icon">🌊</span>
+                <span class="carousel-card-title">Cascading Curls</span>
+              </div>
+              <div class="carousel-card" data-style="curly" data-preset="curly-soft" data-length="6.3" data-hue="350">
+                <span class="carousel-card-icon">💖</span>
+                <span class="carousel-card-title">Soft Romantique Curls</span>
+              </div>
             </div>
-            
+
             <div class="canvas-wrapper" style="position: relative;">
               <canvas id="hair-canvas" width="600" height="400"></canvas>
-              
-              <!-- Game Start Screen Overlay -->
-              <div id="game-start-overlay" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(9, 8, 18, 0.92); backdrop-filter: blur(8px); display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 2rem; z-index: 10;">
-                <div style="font-size: 2.2rem; margin-bottom: 0.5rem; filter: drop-shadow(0 0 10px rgba(212, 163, 115, 0.4));">✂️ STYLE CATCHER 🧴</div>
-                <div style="font-size: 0.75rem; color: var(--accent-gold); font-weight: 600; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 1rem;">Pixel Perfect Hair Arcade</div>
-                <p style="font-size: 0.82rem; color: var(--text-muted); max-width: 380px; line-height: 1.5; margin-bottom: 1.5rem;">
-                  Move your mouse/touch left & right to slide the styling basket! Catch scissors, shampoo, and blow dryers. Avoid bad hair day storm clouds! Reach 100 points to unlock your VIP Discount code!
-                </p>
-                <button id="btn-start-game" class="btn-primary" style="padding: 0.65rem 1.8rem; border-radius: 30px; font-size: 0.85rem; font-weight: 700; cursor: pointer; box-shadow: 0 0 15px rgba(212, 163, 115, 0.4);">
-                  Play & Win 15% Off
-                </button>
-              </div>
-
-              <!-- Game Over / Victory Overlay -->
-              <div id="game-over-overlay" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(9, 8, 18, 0.94); backdrop-filter: blur(8px); display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 2rem; z-index: 10;">
-                <div id="game-result-title" style="font-size: 2rem; margin-bottom: 0.5rem; color: var(--accent-gold);">Game Over</div>
-                <p id="game-result-desc" style="font-size: 0.82rem; color: var(--text-muted); max-width: 380px; line-height: 1.5; margin-bottom: 1.5rem;">You scored 0 points. Better luck next time!</p>
-                
-                <!-- Code Box -->
-                <div id="game-code-box" style="display: none; background: rgba(212, 163, 115, 0.08); border: 1px dashed var(--accent-gold); padding: 0.75rem 1.5rem; border-radius: 8px; margin-bottom: 1.5rem;">
-                  <span style="display: block; font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px;">Your VIP Discount Code</span>
-                  <strong style="font-size: 1.3rem; color: var(--text-main); font-family: var(--font-code); letter-spacing: 2px;">STYLEPRO15</strong>
-                </div>
-
-                <div style="display: flex; gap: 0.75rem;">
-                  <button id="btn-restart-game" class="btn-secondary" style="padding: 0.55rem 1.3rem; border-radius: 20px; font-size: 0.8rem; border-color: rgba(255, 255, 255, 0.1); cursor: pointer;">
-                    Play Again
-                  </button>
-                  <button id="btn-claim-reward" class="btn-primary" style="display: none; padding: 0.55rem 1.3rem; border-radius: 20px; font-size: 0.8rem; cursor: pointer;">
-                    Apply Coupon
-                  </button>
-                </div>
-              </div>
             </div>
 
             <div class="viewport-telemetry" style="justify-content: flex-end;">

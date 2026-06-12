@@ -1941,3 +1941,9 @@ footer p {
     border-color: var(--accent-gold);
   }
 }
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
