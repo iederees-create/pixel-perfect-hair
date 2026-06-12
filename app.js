@@ -366,14 +366,14 @@ function init3DStylingLab() {
   canvas.addEventListener('mousemove', (e) => {
     if (!gameActive) return;
     const rect = canvas.getBoundingClientRect();
-    const mx = e.clientX - rect.left;
+    const mx = ((e.clientX - rect.left) / rect.width) * canvas.width;
     basketX = Math.max(basketWidth / 2, Math.min(canvas.width - basketWidth / 2, mx));
   });
 
   canvas.addEventListener('touchmove', (e) => {
     if (!gameActive || e.touches.length !== 1) return;
     const rect = canvas.getBoundingClientRect();
-    const mx = e.touches[0].clientX - rect.left;
+    const mx = ((e.touches[0].clientX - rect.left) / rect.width) * canvas.width;
     basketX = Math.max(basketWidth / 2, Math.min(canvas.width - basketWidth / 2, mx));
     e.preventDefault();
   }, { passive: false });
