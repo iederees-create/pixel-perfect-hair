@@ -18,6 +18,9 @@
   <script src="app.js" defer></script>
 </head>
 <body>
+  <!-- Ambient background particle canvas -->
+  <canvas id="bg-particles-canvas"></canvas>
+
   <!-- Global background glows -->
   <div class="radial-glow-1"></div>
   <div class="radial-glow-2"></div>
@@ -37,7 +40,9 @@
       
       <nav class="nav-links">
         <a href="#styling-lab">3D Styling Lab</a>
+        <a href="#diagnostic-lab">AI Diagnostics</a>
         <a href="#services">Services</a>
+        <a href="#stylists">Stylists</a>
         <a href="#tracker">Hair Tracker</a>
         <a href="#contact" class="btn-primary">Book Appointment</a>
         
@@ -62,7 +67,9 @@
   <!-- Mobile Nav Menu -->
   <div class="mobile-nav" id="mobile-nav">
     <a href="#styling-lab" class="mobile-link">3D Styling Lab</a>
+    <a href="#diagnostic-lab" class="mobile-link">AI Diagnostics</a>
     <a href="#services" class="mobile-link">Services</a>
+    <a href="#stylists" class="mobile-link">Stylists</a>
     <a href="#tracker" class="mobile-link">Hair Tracker</a>
     <a href="#contact" class="btn-primary mobile-book-btn">Book Appointment</a>
   </div>
@@ -80,7 +87,7 @@
           <p class="subtitle">Welcome to the future of hair styling. We blend elite cosmetic chemistry, 3D face structure profiling, and luxury salon artistry to design styles that enhance your unique geometry.</p>
           <div class="hero-actions">
             <a href="#styling-lab" class="btn-hero">Enter Styling Lab</a>
-            <a href="#services" class="btn-secondary">Explore Services</a>
+            <a href="#diagnostic-lab" class="btn-secondary">Take AI Diagnostic</a>
           </div>
         </div>
         
@@ -122,7 +129,7 @@
       <div class="container">
         <div class="section-header">
           <h2>Virtual <span class="text-gradient">3D Styling Lab</span></h2>
-          <p>Interact with our real-time 3D styling simulator. Adjust length, curl parameters, and color hues to visualize how custom cuts dynamically conform to dimensional face contours.</p>
+          <p>Interact with our real-time 3D styling simulator. Adjust length, curl parameters, and color hues. Select styling tools to trim or style the wireframe hair directly on the canvas viewport.</p>
         </div>
         
         <div class="lab-grid">
@@ -131,6 +138,24 @@
             <div class="card-glow"></div>
             <h3>Style Configuration</h3>
             
+            <div class="control-group">
+              <label>Styling Tool</label>
+              <div class="tool-btn-group">
+                <button id="tool-rotate" class="tool-btn active" title="Rotate Model">
+                  <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+                  <span>Rotate</span>
+                </button>
+                <button id="tool-scissor" class="tool-btn" title="Trim Hair (Click & Drag over Hair)">
+                  <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><line x1="9.8" y1="8.5" x2="20" y2="17"/><line x1="9.8" y1="15.5" x2="20" y2="7"/></svg>
+                  <span>Scissor</span>
+                </button>
+                <button id="tool-comb" class="tool-btn" title="Comb Hair (Click & Drag)">
+                  <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><path d="M3 5h18v4H3zM6 9v8M10 9v8M14 9v8M18 9v8"/></svg>
+                  <span>Comb</span>
+                </button>
+              </div>
+            </div>
+
             <div class="control-group">
               <label for="hair-style">Hair Texture / Preset</label>
               <select id="hair-style">
@@ -157,12 +182,22 @@
               <input type="range" id="hair-color" min="0" max="360" step="1" value="330">
             </div>
 
+            <div class="control-group">
+              <div class="control-label-row">
+                <label for="wind-speed">Wind Breeze Speed</label>
+                <span id="wind-speed-val" class="math-value">1.5 m/s</span>
+              </div>
+              <input type="range" id="wind-speed" min="0" max="5.0" step="0.1" value="1.5">
+            </div>
+
             <div class="control-group physics-row">
               <div class="checkbox-container">
-                <input type="checkbox" id="wind-physics" checked>
-                <label for="wind-physics">Enable Breeze Physics</label>
+                <input type="checkbox" id="biometric-overlay" checked>
+                <label for="biometric-overlay">Enable Biometric Scan Overlays</label>
               </div>
             </div>
+            
+            <button id="reset-hair-btn" class="btn-secondary reset-btn" style="width: 100%; margin-left: 0; margin-top: 1rem;">Reset Hair Strands</button>
           </div>
 
           <!-- 3D Interactive Canvas -->
@@ -176,8 +211,10 @@
             </div>
             
             <div class="canvas-wrapper">
+              <!-- Biometric scanning overlay scanner lines -->
+              <div class="scanner-line" id="scanner-beam"></div>
               <canvas id="hair-canvas" width="600" height="400"></canvas>
-              <div class="canvas-instructions">Click & Drag to Rotate Model</div>
+              <div class="canvas-instructions" id="viewport-helper">Click & Drag to Rotate Model</div>
             </div>
 
             <div class="viewport-telemetry">
@@ -186,8 +223,8 @@
                 <span class="telemetry-val" id="telemetry-strands">350</span>
               </div>
               <div class="telemetry-box">
-                <span class="telemetry-lbl">Rendering Mode</span>
-                <span class="telemetry-val">Vector projection</span>
+                <span class="telemetry-lbl">Styling Mode</span>
+                <span class="telemetry-val" id="telemetry-mode">Camera Rotate</span>
               </div>
             </div>
           </div>
@@ -205,6 +242,184 @@
             
             <div class="equation-detail">
               <p>Current Color Vector: <br><strong class="highlight-val" id="color-vector-desc">HSL(330°, 85%, 55%)</strong></p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Visual AI Diagnostic Quiz Section -->
+    <section id="diagnostic-lab" class="diagnostic-section">
+      <div class="container">
+        <div class="section-header">
+          <h2>AI Hair <span class="text-gradient">Diagnostic Profiler</span></h2>
+          <p>Answer a few questions regarding your hair chemistry and density to generate a biometric health profile. Receive styled cut recommendations and instant price calculations.</p>
+        </div>
+
+        <div class="quiz-container">
+          <div class="glass-card quiz-card" id="quiz-card-box">
+            <div class="card-glow"></div>
+            
+            <!-- Quiz Steps -->
+            <div class="quiz-step active" id="step-1" data-step="1">
+              <div class="step-progress">Step 1 of 3</div>
+              <h3>What is your natural hair texture?</h3>
+              <div class="options-grid">
+                <div class="option-button" data-value="straight">
+                  <div class="option-icon">
+                    <svg viewBox="0 0 24 24" width="28" height="28" stroke="currentColor" stroke-width="2" fill="none"><line x1="8" y1="3" x2="8" y2="21"/><line x1="12" y1="3" x2="12" y2="21"/><line x1="16" y1="3" x2="16" y2="21"/></svg>
+                  </div>
+                  <h4>Straight</h4>
+                  <p>Fine, medium, or coarse strands with no wave patterns.</p>
+                </div>
+                <div class="option-button" data-value="wavy">
+                  <div class="option-icon">
+                    <svg viewBox="0 0 24 24" width="28" height="28" stroke="currentColor" stroke-width="2" fill="none"><path d="M3 12h3a3 3 0 0 1 3 3a3 3 0 0 0 3 3h3a3 3 0 0 0 3-3a3 3 0 0 1 3-3h3"/></svg>
+                  </div>
+                  <h4>Wavy</h4>
+                  <p>Loose S-shaped waves that lay flatter near the scalp.</p>
+                </div>
+                <div class="option-button" data-value="curly">
+                  <div class="option-icon">
+                    <svg viewBox="0 0 24 24" width="28" height="28" stroke="currentColor" stroke-width="2" fill="none"><path d="M4 8a3 3 0 0 1 3-3c3 0 3 6 6 6s3-6 6-6a3 3 0 0 1 3 3v8a3 3 0 0 1-3 3c-3 0-3-6-6-6s-3 6-6 6a3 3 0 0 1-3-3z"/></svg>
+                  </div>
+                  <h4>Curly</h4>
+                  <p>Defined springy loops with moderate frizz vulnerability.</p>
+                </div>
+                <div class="option-button" data-value="coily">
+                  <div class="option-icon">
+                    <svg viewBox="0 0 24 24" width="28" height="28" stroke="currentColor" stroke-width="2" fill="none"><circle cx="12" cy="12" r="10"/><path d="M12 6a6 6 0 1 1-6 6"/></svg>
+                  </div>
+                  <h4>Coily / Afro</h4>
+                  <p>Tight helical coils or Z-pattern coils with high density.</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="quiz-step" id="step-2" data-step="2">
+              <div class="step-progress">Step 2 of 3</div>
+              <h3>How does your hair behave throughout the day?</h3>
+              <div class="options-grid">
+                <div class="option-button" data-value="dry">
+                  <div class="option-icon">
+                    <svg viewBox="0 0 24 24" width="28" height="28" stroke="currentColor" stroke-width="2" fill="none"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                  </div>
+                  <h4>Dry / Frizzy</h4>
+                  <p>Feels coarse, absorbs moisture quickly, breaks easily.</p>
+                </div>
+                <div class="option-button" data-value="normal">
+                  <div class="option-icon">
+                    <svg viewBox="0 0 24 24" width="28" height="28" stroke="currentColor" stroke-width="2" fill="none"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+                  </div>
+                  <h4>Balanced</h4>
+                  <p>Easy to style, soft touch, holds curls or straight lines well.</p>
+                </div>
+                <div class="option-button" data-value="oily">
+                  <div class="option-icon">
+                    <svg viewBox="0 0 24 24" width="28" height="28" stroke="currentColor" stroke-width="2" fill="none"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+                  </div>
+                  <h4>Oil Prone</h4>
+                  <p>Feels heavy or flat near the roots, requires daily washes.</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="quiz-step" id="step-3" data-step="3">
+              <div class="step-progress">Step 3 of 3</div>
+              <h3>What chemical treatments are currently in your hair?</h3>
+              <div class="options-grid">
+                <div class="option-button" data-value="virgin">
+                  <div class="option-icon">
+                    <svg viewBox="0 0 24 24" width="28" height="28" stroke="currentColor" stroke-width="2" fill="none"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+                  </div>
+                  <h4>Virgin / Natural</h4>
+                  <p>No color dye, bleaches, chemical straighteners, or perms.</p>
+                </div>
+                <div class="option-button" data-value="colored">
+                  <div class="option-icon">
+                    <svg viewBox="0 0 24 24" width="28" height="28" stroke="currentColor" stroke-width="2" fill="none"><path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"/><path d="M7.5 10.5C8.32843 10.5 9 9.82843 9 9C9 8.17157 8.32843 7.5 7.5 7.5C6.67157 7.5 6 8.17157 6 9C6 9.82843 6.67157 10.5 7.5 10.5Z"/><path d="M11.5 7.5C12.3284 7.5 13 6.82843 13 6C13 5.17157 12.3284 4.5 11.5 4.5C10.6716 4.5 10 5.17157 10 6C10 6.82843 10.6716 7.5 11.5 7.5Z"/><path d="M16.5 10.5C17.3284 10.5 18 9.82843 18 9C18 8.17157 17.3284 7.5 16.5 7.5C15.6716 7.5 15 8.17157 15 9C15 9.82843 15.6716 10.5 16.5 10.5Z"/></svg>
+                  </div>
+                  <h4>Colored / Highlights</h4>
+                  <p>Regular tinting, semi-permanent coloring, or highlights.</p>
+                </div>
+                <div class="option-button" data-value="bleached">
+                  <div class="option-icon">
+                    <svg viewBox="0 0 24 24" width="28" height="28" stroke="currentColor" stroke-width="2" fill="none"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg>
+                  </div>
+                  <h4>Bleached / Damaged</h4>
+                  <p>High-lift blonde, global bleach, double process, or split ends.</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Quiz Navigation -->
+            <div class="quiz-nav-row">
+              <button id="quiz-prev-btn" class="btn-secondary" style="display: none;">Back</button>
+              <button id="quiz-next-btn" class="btn-primary" disabled>Next Question</button>
+            </div>
+          </div>
+
+          <!-- Quiz Results Report Card (Initial display: none) -->
+          <div class="glass-card quiz-results-card" id="quiz-results-box" style="display: none;">
+            <div class="card-glow"></div>
+            <div class="results-header">
+              <h3>AI Biometric <span class="text-gradient">Diagnostic Report</span></h3>
+              <span class="report-badge">Analysis Success</span>
+            </div>
+            
+            <div class="results-layout">
+              <!-- Telemetry indicators -->
+              <div class="telemetry-indicators">
+                <div class="gauge-container">
+                  <div class="radial-gauge-box">
+                    <svg viewBox="0 0 36 36" class="circular-chart">
+                      <path class="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                      <path class="circle" id="gauge-hydration-fill" stroke-dasharray="0, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                      <text x="18" y="20.35" class="percentage" id="gauge-hydration-val">0%</text>
+                    </svg>
+                    <span class="gauge-lbl">Hydration Index</span>
+                  </div>
+                  <div class="radial-gauge-box">
+                    <svg viewBox="0 0 36 36" class="circular-chart">
+                      <path class="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                      <path class="circle" id="gauge-elasticity-fill" stroke-dasharray="0, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                      <text x="18" y="20.35" class="percentage" id="gauge-elasticity-val">0%</text>
+                    </svg>
+                    <span class="gauge-lbl">Elasticity Ratio</span>
+                  </div>
+                  <div class="radial-gauge-box">
+                    <svg viewBox="0 0 36 36" class="circular-chart">
+                      <path class="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                      <path class="circle" id="gauge-porosity-fill" stroke-dasharray="0, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                      <text x="18" y="20.35" class="percentage" id="gauge-porosity-val">0%</text>
+                    </svg>
+                    <span class="gauge-lbl">Cuticle Porosity</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Recommendation details -->
+              <div class="results-details">
+                <div class="report-block">
+                  <h4>Recommended Silhouette</h4>
+                  <p id="report-silhouette">Calculating...</p>
+                </div>
+                <div class="report-block">
+                  <h4>Recommended Treatment</h4>
+                  <p id="report-treatment">Calculating...</p>
+                </div>
+                <div class="report-block estimate-box">
+                  <div class="estimate-row">
+                    <span>Estimated Service Total:</span>
+                    <strong class="highlight-val" id="report-price">R 0</strong>
+                  </div>
+                </div>
+                
+                <div class="report-actions">
+                  <button id="book-diagnostic-btn" class="btn-primary">Apply & Pre-Book Service</button>
+                  <button id="restart-quiz-btn" class="btn-secondary">Retake Test</button>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -259,6 +474,69 @@
             <h3>Keratin Infusion Therapy</h3>
             <p>Advanced protein cross-linking system to repair damaged cuticle bonds and restore absolute light reflection.</p>
             <div class="card-price">R 1,200+</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Stylists Section -->
+    <section id="stylists" class="stylists-section">
+      <div class="container">
+        <div class="section-header">
+          <h2>Master <span class="text-gradient">Stylist Team</span></h2>
+          <p>Meet our biometric color and structural design specialists. Click on a stylist to select them for your consultation booking.</p>
+        </div>
+
+        <div class="grid-3">
+          <div class="glass-card stylist-card tilt-effect" data-stylist="David">
+            <div class="card-glow"></div>
+            <div class="stylist-avatar-frame">
+              <div class="stylist-initials">D</div>
+            </div>
+            <div class="stylist-badge">Art Director</div>
+            <h3>David Jenkins</h3>
+            <p class="stylist-specialty">Symmetry Design & Precision Cuts</p>
+            <p class="stylist-desc">15+ years crafting structured dry cuts in Paris and Cape Town. Fits shapes precisely to jaw structures.</p>
+            
+            <div class="stylist-telemetry">
+              <div class="tel-row"><span>Client satisfaction:</span> <span>99.2%</span></div>
+              <div class="tel-row"><span>Next open slot:</span> <span class="open-slot">Today 14:00</span></div>
+            </div>
+            <button class="btn-secondary select-stylist-btn" style="width: 100%; margin-left:0; margin-top: 1.5rem;">Select David</button>
+          </div>
+
+          <div class="glass-card stylist-card tilt-effect" data-stylist="Michael">
+            <div class="card-glow"></div>
+            <div class="stylist-avatar-frame">
+              <div class="stylist-initials">M</div>
+            </div>
+            <div class="stylist-badge">Color Master</div>
+            <h3>Michael Thabo</h3>
+            <p class="stylist-specialty">Organic Balayage & HSL Blending</p>
+            <p class="stylist-desc">Ex-London organic chemistry colorist. Crafts metallic honey blondes and custom hand-painted highlights.</p>
+            
+            <div class="stylist-telemetry">
+              <div class="tel-row"><span>Client satisfaction:</span> <span>99.6%</span></div>
+              <div class="tel-row"><span>Next open slot:</span> <span class="open-slot">Tomorrow 09:30</span></div>
+            </div>
+            <button class="btn-secondary select-stylist-btn" style="width: 100%; margin-left:0; margin-top: 1.5rem;">Select Michael</button>
+          </div>
+
+          <div class="glass-card stylist-card tilt-effect" data-stylist="Sophia">
+            <div class="card-glow"></div>
+            <div class="stylist-avatar-frame">
+              <div class="stylist-initials">S</div>
+            </div>
+            <div class="stylist-badge">Therapy Specialist</div>
+            <h3>Sophia Martinez</h3>
+            <p class="stylist-specialty">Keratin Bonding & Trichology</p>
+            <p class="stylist-desc">Specializes in microscopic cuticle analysis, protein cross-linking, and cellular strand hydration.</p>
+            
+            <div class="stylist-telemetry">
+              <div class="tel-row"><span>Client satisfaction:</span> <span>98.9%</span></div>
+              <div class="tel-row"><span>Next open slot:</span> <span class="open-slot">Monday 11:00</span></div>
+            </div>
+            <button class="btn-secondary select-stylist-btn" style="width: 100%; margin-left:0; margin-top: 1.5rem;">Select Sophia</button>
           </div>
         </div>
       </div>
