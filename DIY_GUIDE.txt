@@ -58,15 +58,15 @@ GitHub Pages provides free static hosting for HTML templates. To launch your sit
 ------------------------------------------------------------------------
 SECTION 5: INTEGRATING WITH AN EXISTING WIX SITE
 ------------------------------------------------------------------------
-Please note: This product is delivered as a premium, high-performance standalone HTML5 template (not a Wix native template) to preserve the custom pixel-perfect canvas gameplay, real-time styling checklist builder, and interactive AI chatbot experience. 
+Please note: This product is delivered as a premium, high-performance standalone HTML5 template (not a Wix native template) to preserve the custom interactive style consultation lab, real-time current photo uploader, and interactive AI chatbot experience. 
 
-However, if you already have a Wix website and wish to offer this styling arcade and consultation experience to your Wix visitors, you can easily integrate it in three ways:
+However, if you already have a Wix website and wish to offer this consultation experience to your Wix visitors, you can easily integrate it in three ways:
 
 METHOD A: EMBED VIA HTML IFRAME (RECOMMENDED FOR THE INTERACTIVE MATCHER)
 1. In your Wix Editor, click the "+" button (Add Elements) -> select "Embed Code" -> click "HTML Embed".
 2. Set the Embed Type to "Website Address".
 3. Paste the URL of your live hosted site (from Section 4, e.g., `https://<username>.github.io/<repository>/#styling-lab`).
-4. Resize the iframe box inside Wix so it displays the interactive canvas and lookbook cards cleanly.
+4. Resize the iframe box inside Wix so it displays the interactive lab and cut builder options cleanly.
 
 METHOD B: SUBDOMAIN INTEGRATION (RECOMMENDED FOR MAIN SALON SITE)
 If you want to keep your main site on Wix but offer this interactive experience as a premium feature:
@@ -79,7 +79,7 @@ If you want to inject the lookbook and matcher code directly into a Wix page:
 1. In your Wix Dashboard, go to Settings -> Custom Code.
 2. Add a new code block, select "Body - end", and paste the custom Javascript.
 3. Add a code block to "Head" for the CSS layout.
-4. (Note: Embedding via iframe is significantly easier, more reliable, and preserves the custom glassmorphic canvas scaling).
+4. (Note: Embedding via iframe is significantly easier, more reliable, and preserves the custom glassmorphic layout scaling).
 
 ------------------------------------------------------------------------
 NEED HELP?

@@ -10,7 +10,7 @@ STEP 1: PREVIEW THE WEBSITE LOCALLY
 You can test the website immediately on your computer:
 1. Extract all downloaded files (index.html, style.css, app.js) into the same folder.
 2. Double-click "index.html" to open it in any modern web browser (Chrome, Safari, Edge, Firefox).
-3. Try rotating the 3D head model in the Styling Lab, adjusting length/color sliders, testing the Hair Health Tracker query using code "PIXEL100", and chatting with the AI Profiler.
+3. Try uploading a photo of how you look now in the Current Photo Uploader, selecting your desired styling options in the Preferred Cut Builder, taking the AI diagnostic quiz, and clicking "Save Styling Recipe" to download the custom recipe voucher.
 
 ------------------------------------------------------------------------
 STEP 2: CLAIM YOUR COMPLIMENTARY REBRANDING & SETUP SERVICE
