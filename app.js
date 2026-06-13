@@ -280,7 +280,7 @@ function init3DStylingLab() {
       previewContainer.style.display = 'flex';
       uploadPrompt.style.display = 'none';
       if (specUploadStatus) {
-        specUploadStatus.textContent = 'Reference Uploaded';
+        specUploadStatus.textContent = 'Current Photo Added';
         specUploadStatus.style.color = 'var(--accent-gold)';
       }
       globalBookingState.capturedImage = uploadedImageBase64;
@@ -296,7 +296,7 @@ function init3DStylingLab() {
     previewContainer.style.display = 'none';
     uploadPrompt.style.display = 'flex';
     if (specUploadStatus) {
-      specUploadStatus.textContent = 'No File Uploaded';
+      specUploadStatus.textContent = 'No Photo Uploaded';
       specUploadStatus.style.color = '';
     }
     globalBookingState.capturedImage = null;
@@ -322,7 +322,7 @@ function init3DStylingLab() {
     });
     const extrasText = selectedExtras.length > 0 ? selectedExtras.join(', ') : "None";
 
-    let photoAttached = uploadedImageBase64 ? "Attached (Custom Reference Photo)" : "Not Attached";
+    let photoAttached = uploadedImageBase64 ? "Attached (Client Current Photo)" : "Not Attached";
 
     let recipe = `Custom Cut preferences:\n` +
                  `· Length: ${selectedLength}\n` +
@@ -330,7 +330,7 @@ function init3DStylingLab() {
                  `· Texture Style: ${selectedTexture}\n` +
                  `· Bangs/Fringe: ${selectedBangs}\n` +
                  `· Custom Extras: ${extrasText}\n` +
-                 `· Reference Image: ${photoAttached}`;
+                 `· Current Hair Photo: ${photoAttached}`;
 
     globalBookingState.styleRecipe = recipe;
     globalBookingState.service = "Custom Styled Consultation";
@@ -403,8 +403,8 @@ function init3DStylingLab() {
           msg.className = 'chat-bubble bot-message';
           
           let referenceText = uploadedImageBase64 
-            ? `<p>📸 <strong>Custom Reference Photo Attached!</strong></p>` 
-            : `<p>💡 <em>Tip: You can upload a reference image to help your stylist capture your dream look precisely!</em></p>`;
+            ? `<p>📸 <strong>Current Photo Attached!</strong></p>` 
+            : `<p>💡 <em>Tip: You can upload a photo of how you look now to help your stylist preview the starting canvas!</em></p>`;
 
           msg.innerHTML = `<p>🧬 <strong>Biometric Styling Plan Locked!</strong></p>` +
                           `<p>Your custom recipe has been compiled:</p>` +
