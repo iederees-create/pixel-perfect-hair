@@ -203,527 +203,105 @@ function initAmbientParticles() {
    3D Styling Lab Engine
    ========================================== */
 function init3DStylingLab() {
-  const canvas = document.getElementById('hair-canvas');
-  if (!canvas) return null;
-  const ctx = canvas.getContext('2d');
-  
-  // Game UI overlays & buttons
-  const startOverlay = document.getElementById('game-start-overlay');
-  const gameOverOverlay = document.getElementById('game-over-overlay');
-  const btnStartGame = document.getElementById('btn-start-game');
-  const btnRestartGame = document.getElementById('btn-restart-game');
-  const btnClaimReward = document.getElementById('btn-claim-reward');
-  const resultTitle = document.getElementById('game-result-title');
-  const resultDesc = document.getElementById('game-result-desc');
-  const codeBox = document.getElementById('game-code-box');
+  const uploadZone = document.getElementById('upload-zone');
+  if (!uploadZone) return null;
+
+  const fileInput = document.getElementById('style-image-upload');
+  const previewContainer = document.getElementById('upload-preview-container');
+  const previewImg = document.getElementById('upload-preview-img');
+  const btnRemoveUpload = document.getElementById('btn-remove-upload');
+  const uploadPrompt = document.getElementById('upload-prompt');
   const btnCaptureSnapshot = document.getElementById('btn-capture-snapshot');
+  const biometricScannerOverlay = document.getElementById('biometric-scanner-overlay');
+  const specUploadStatus = document.getElementById('spec-upload-status');
+  const specRecipeStatus = document.getElementById('spec-recipe-status');
 
-  // Lookbook cards & data
-  const carouselCards = document.querySelectorAll('.carousel-card');
-  let activeStyleName = 'bob';
   let isScanning = false;
-  let scanProgress = 0;
+  let uploadedImageBase64 = null;
 
-  // Lookbook metadata
-  const lookbookData = {
-    // === BOBS ===
-    "bob-sleek": {
-      title: "Sleek French Bob",
-      desc: "An architectural classic bob cut with clean lines that frame the cheekbones. Perfect for a sharp, modern appearance.",
-      face: "Oval, Heart, Square",
-      maintenance: "Medium",
-      texture: "Straight, Fine",
-      price: "R 650",
-      stylist: "David Jenkins"
-    },
-    "bob-french": {
-      title: "Parisian Fringe Bob",
-      desc: "A cropped chin-length bob paired with light wispy bangs, offering a romantic, effortless European style.",
-      face: "Long, Oval, Heart",
-      maintenance: "Medium",
-      texture: "Straight, Fine",
-      price: "R 680",
-      stylist: "David Jenkins"
-    },
-    "bob-asym": {
-      title: "Asymmetrical Bob",
-      desc: "An edgy cut featuring one side longer than the other to create dramatic geometric angles.",
-      face: "Round, Oval, Heart",
-      maintenance: "High",
-      texture: "Straight, Thick",
-      price: "R 750",
-      stylist: "Sophia Martinez"
-    },
-    "bob-layered": {
-      title: "Textured Layered Bob",
-      desc: "A shaggy bob cut with internal layers for movement, texture, and organic volume.",
-      face: "Square, Oval, Diamond",
-      maintenance: "Low-Medium",
-      texture: "Wavy, Fine",
-      price: "R 690",
-      stylist: "Sophia Martinez"
-    },
-    "bob-lob": {
-      title: "Classic Long Bob (Lob)",
-      desc: "A collarbone-skimming bob providing styling flexibility while maintaining a clean, structured outline.",
-      face: "Round, Oval, Square",
-      maintenance: "Low",
-      texture: "Straight, Medium",
-      price: "R 720",
-      stylist: "David Jenkins"
-    },
-    "bob-shaggy": {
-      title: "Shaggy Retro Bob",
-      desc: "Inspired by the 70s, this bob features choppy layers and textured ends for a relaxed rock-and-roll vibe.",
-      face: "Long, Diamond, Oval",
-      maintenance: "Low",
-      texture: "Wavy, Thick",
-      price: "R 670",
-      stylist: "Michael Thabo"
-    },
-    "bob-blunt": {
-      title: "Blunt-Cut Glass Bob",
-      desc: "A razor-sharp, zero-layer bob styled for an ultra-reflective glass finish.",
-      face: "Oval, Heart, Diamond",
-      maintenance: "High",
-      texture: "Straight, Coarse",
-      price: "R 700",
-      stylist: "David Jenkins"
-    },
-    "bob-pageboy": {
-      title: "Classic Pageboy Bob",
-      desc: "A retro structured bob with under-curled ends that roll inward around the neck.",
-      face: "Long, Oval, Heart",
-      maintenance: "Medium",
-      texture: "Straight, Medium",
-      price: "R 640",
-      stylist: "David Jenkins"
-    },
-    "bob-inverted": {
-      title: "Inverted A-Line Bob",
-      desc: "Shorter in the back and graduated longer toward the front to accentuate the jawline.",
-      face: "Round, Oval, Square",
-      maintenance: "Medium-High",
-      texture: "Straight, Medium",
-      price: "R 710",
-      stylist: "Sophia Martinez"
-    },
-    "bob-vintage": {
-      title: "Vintage Pinup Bob",
-      desc: "Styled with victory curls and clean pinup waves for a nostalgic, glamorous look.",
-      face: "Oval, Heart, Square",
-      maintenance: "High",
-      texture: "Straight, Wavy",
-      price: "R 850",
-      stylist: "Sophia Martinez"
-    },
+  // Drag-and-drop event listeners
+  ['dragenter', 'dragover'].forEach(eventName => {
+    uploadZone.addEventListener(eventName, (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      uploadZone.classList.add('dragover');
+    }, false);
+  });
 
-    // === PIXIES ===
-    "pixie-chic": {
-      title: "Chic Pixie Crop",
-      desc: "A short, low-maintenance crop with textured, organic layers that emphasize facial symmetry.",
-      face: "Oval, Round, Heart",
-      maintenance: "Low",
-      texture: "Straight, Wavy",
-      price: "R 580",
-      stylist: "David Jenkins"
-    },
-    "pixie-textured": {
-      title: "Textured Razor Pixie",
-      desc: "Choppy layers cut with a razor to add volume and texture on top while keeping the sides tight.",
-      face: "Oval, Heart, Diamond",
-      maintenance: "Low",
-      texture: "Straight, Fine",
-      price: "R 600",
-      stylist: "David Jenkins"
-    },
-    "pixie-spiky": {
-      title: "Edgy Spiky Crop",
-      desc: "A short crop with textured crown spikes for a bold, statement-making silhouette.",
-      face: "Round, Oval, Square",
-      maintenance: "Low-Medium",
-      texture: "Coarse, Thick",
-      price: "R 620",
-      stylist: "Sophia Martinez"
-    },
-    "pixie-shaved": {
-      title: "Undercut Pixie",
-      desc: "Features shaved sides or back with a contrasting longer, styled top section.",
-      face: "Oval, Diamond, Heart",
-      maintenance: "Medium",
-      texture: "Any Texture",
-      price: "R 650",
-      stylist: "Sophia Martinez"
-    },
-    "pixie-feathered": {
-      title: "Feathered Pixie Crop",
-      desc: "Soft, wispy layers that brush forward gently around the ears and forehead.",
-      face: "Oval, Heart, Long",
-      maintenance: "Low",
-      texture: "Straight, Fine",
-      price: "R 590",
-      stylist: "David Jenkins"
-    },
-    "pixie-retro": {
-      title: "Retro Pixie Wave",
-      desc: "A vintage-inspired pixie with clean fingerwaves sculpted close to the head.",
-      face: "Oval, Heart, Square",
-      maintenance: "High",
-      texture: "Wavy, Fine",
-      price: "R 780",
-      stylist: "Sophia Martinez"
-    },
-    "pixie-curly": {
-      title: "Curly Pixie Volume",
-      desc: "Emphasizes natural curls on top with tapered sides for structural bounce.",
-      face: "Oval, Round, Diamond",
-      maintenance: "Medium",
-      texture: "Curly, Wavy",
-      price: "R 640",
-      stylist: "Michael Thabo"
-    },
-    "pixie-wispy": {
-      title: "Wispy Fringe Pixie",
-      desc: "Styled with piecey, texturized bangs that drape gently over the eyebrows.",
-      face: "Oval, Long, Heart",
-      maintenance: "Low-Medium",
-      texture: "Straight, Fine",
-      price: "R 610",
-      stylist: "David Jenkins"
-    },
-    "pixie-tapered": {
-      title: "Tapered Boyish Crop",
-      desc: "A classic short crop with a soft gradient taper down the back of the neck.",
-      face: "Oval, Square, Heart",
-      maintenance: "Low",
-      texture: "Straight, Medium",
-      price: "R 570",
-      stylist: "David Jenkins"
-    },
-    "pixie-platinum": {
-      title: "Platinum Pixie Cut",
-      desc: "A bold crop combined with a high-lift platinum blonde bleach treatment.",
-      face: "Oval, Heart, Diamond",
-      price: "R 1,450",
-      maintenance: "High (Roots)",
-      texture: "Straight, Fine",
-      stylist: "Michael Thabo"
-    },
+  ['dragleave', 'drop'].forEach(eventName => {
+    uploadZone.addEventListener(eventName, (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      uploadZone.classList.remove('dragover');
+    }, false);
+  });
 
-    // === WAVES ===
-    "waves-beach": {
-      title: "Rose Gold Beach Waves",
-      desc: "Voluminous, hand-painted balayage curls with relaxed movement. Ideal for active lifestyles.",
-      face: "Oval, Diamond, Long",
-      maintenance: "Medium-High",
-      texture: "Wavy, Thick",
-      price: "R 1,850",
-      stylist: "Michael Thabo"
-    },
-    "waves-mermaid": {
-      title: "Crimson Mermaid Waves",
-      desc: "Extra-long cascading waves tinted with deep crimson hues for an enchanting look.",
-      face: "Oval, Round, Long",
-      maintenance: "High",
-      texture: "Wavy, Thick",
-      price: "R 2,200",
-      stylist: "Michael Thabo"
-    },
-    "waves-tousled": {
-      title: "Tousled Shag Waves",
-      desc: "A layered shag cut with soft waves that give a relaxed, rock-star appeal.",
-      face: "Long, Oval, Square",
-      maintenance: "Low-Medium",
-      texture: "Wavy, Medium",
-      price: "R 850",
-      stylist: "Sophia Martinez"
-    },
-    "waves-hollywood": {
-      title: "Hollywood Glamour Waves",
-      desc: "Polished, uniform S-shape waves that fall elegantly over one shoulder.",
-      face: "Oval, Heart, Diamond",
-      maintenance: "High",
-      texture: "Wavy, Fine-Medium",
-      price: "R 950",
-      stylist: "David Jenkins"
-    },
-    "waves-vintage": {
-      title: "Vintage Fingerwaves",
-      desc: "Sleek, gel-sculpted fingerwaves that offer an elegant 1920s appearance.",
-      face: "Oval, Heart, Square",
-      maintenance: "High",
-      texture: "Straight, Wavy",
-      price: "R 890",
-      stylist: "Sophia Martinez"
-    },
-    "waves-wet": {
-      title: "Wet-Look Gloss Waves",
-      desc: "High-shine wet look styling that defines wave patterns with glossy hold.",
-      face: "Oval, Diamond, Heart",
-      maintenance: "Medium",
-      texture: "Wavy, Thick",
-      price: "R 800",
-      stylist: "Michael Thabo"
-    },
-    "waves-crimson": {
-      title: "Crimson Autumn Waves",
-      desc: "Sun-kissed copper waves with soft long layers to create depth and dimension.",
-      face: "Oval, Round, Heart",
-      maintenance: "Medium",
-      texture: "Wavy, Medium-Thick",
-      price: "R 1,650",
-      stylist: "Michael Thabo"
-    },
-    "waves-boho": {
-      title: "Bohemian Boho Waves",
-      desc: "Soft, loose wave patterns with random braids intermixed for a free-spirited vibe.",
-      face: "Oval, Square, Heart",
-      maintenance: "Low",
-      texture: "Wavy, Fine-Medium",
-      price: "R 790",
-      stylist: "Sophia Martinez"
-    },
-    "waves-copper": {
-      title: "Sunset Copper Waves",
-      desc: "Deep sunset ginger balayage waves that reflect light brilliantly.",
-      face: "Oval, Diamond, Square",
-      maintenance: "Medium-High",
-      texture: "Wavy, Medium",
-      price: "R 1,750",
-      stylist: "Michael Thabo"
-    },
-    "waves-pastel": {
-      title: "Creative Lavender Waves",
-      desc: "Light pastel lilac tones styled in soft beachy waves.",
-      face: "Oval, Heart, Diamond",
-      price: "R 1,950",
-      maintenance: "High",
-      texture: "Wavy, Fine",
-      stylist: "Michael Thabo"
-    },
-
-    // === AFRO ===
-    "afro-coils": {
-      title: "High-Volume Afro Coils",
-      desc: "A sculpted halo celebrating rich, natural texture and dimensional coils with custom shape framing.",
-      face: "Round, Square, Heart",
-      maintenance: "Medium",
-      texture: "Coily, Afro",
-      price: "R 750",
-      stylist: "Sophia Martinez"
-    },
-    "afro-tapered": {
-      title: "Tapered Natural Fro",
-      desc: "A clean tapered cut that keeps the sides close while leaving high volume on top.",
-      face: "Round, Oval, Heart",
-      maintenance: "Low-Medium",
-      texture: "Coily, Afro",
-      price: "R 680",
-      stylist: "Sophia Martinez"
-    },
-    "afro-mohawk": {
-      title: "Mohawk Fro (Frohawk)",
-      desc: "A bold, sculpted frohawk styling that gathers natural coils along the center.",
-      face: "Oval, Square, Diamond",
-      maintenance: "Medium",
-      texture: "Coily, Afro",
-      price: "R 800",
-      stylist: "Sophia Martinez"
-    },
-    "afro-puff": {
-      title: "Double Afro Puff",
-      desc: "Playful twin puffs gathered high on the head to showcase texture and curl volume.",
-      face: "Round, Heart, Oval",
-      maintenance: "Low",
-      texture: "Coily, Afro",
-      price: "R 550",
-      stylist: "Sophia Martinez"
-    },
-    "afro-spiral": {
-      title: "Spiral Coil-Out",
-      desc: "Coils defined with high-hydration styling creams for a spiral-defined shape.",
-      face: "Oval, Long, Square",
-      maintenance: "Medium",
-      texture: "Coily, Curly",
-      price: "R 820",
-      stylist: "Michael Thabo"
-    },
-    "afro-halo": {
-      title: "Voluminous Halo Fro",
-      desc: "A perfectly rounded, classic spherical afro cut celebrating natural density.",
-      face: "Square, Heart, Oval",
-      maintenance: "Medium-High",
-      texture: "Coily, Afro",
-      price: "R 780",
-      stylist: "Sophia Martinez"
-    },
-    "afro-highlight": {
-      title: "Honey Highlighted Fro",
-      desc: "Adds depth to natural coils with sun-kissed honey highlights on the tips.",
-      face: "Round, Oval, Diamond",
-      maintenance: "Medium-High",
-      texture: "Coily, Afro",
-      price: "R 1,350",
-      stylist: "Michael Thabo"
-    },
-    "afro-bleached": {
-      title: "Bleached Platinum Fro",
-      desc: "A short, closely cropped afro colored in high-impact platinum blonde.",
-      face: "Oval, Square, Heart",
-      maintenance: "High (Roots)",
-      texture: "Coily, Afro",
-      price: "R 1,200",
-      stylist: "Michael Thabo"
-    },
-    "afro-frohawk": {
-      title: "Glam Frohawk Graduated",
-      desc: "A high-fashion frohawk with detailed fading and geometric styling lines.",
-      face: "Oval, Diamond, Heart",
-      maintenance: "Medium",
-      texture: "Coily, Afro",
-      price: "R 850",
-      stylist: "Sophia Martinez"
-    },
-    "afro-crown": {
-      title: "Crown Braided Fro",
-      desc: "Combines close-to-scalp braids on the sides with a natural halo crown.",
-      face: "Oval, Long, Heart",
-      maintenance: "Low-Medium",
-      texture: "Coily, Afro",
-      price: "R 900",
-      stylist: "Sophia Martinez"
-    },
-
-    // === CURLY ===
-    "curly-volume": {
-      title: "Long Layered Curls",
-      desc: "Bouncy, elongated spirals with soft layered texturing that provides organic volume and bounce.",
-      face: "Long, Oval, Heart",
-      maintenance: "High",
-      texture: "Curly, Thick",
-      price: "R 1,100",
-      stylist: "Michael Thabo"
-    },
-    "curly-bouncy": {
-      title: "Bouncy Spring Ringlets",
-      desc: "Tight, energetic ringlets cut with rounded layers to maximize bounce and volume.",
-      face: "Oval, Round, Diamond",
-      maintenance: "High",
-      texture: "Curly, Springy",
-      price: "R 1,150",
-      stylist: "Michael Thabo"
-    },
-    "curly-botticelli": {
-      title: "Botticelli Spiral Curls",
-      desc: "Elongated, romantic spirals reminiscent of classic paintings, styled with light shine oil.",
-      face: "Long, Oval, Heart",
-      maintenance: "Medium-High",
-      texture: "Curly, Fine-Medium",
-      price: "R 1,200",
-      stylist: "Michael Thabo"
-    },
-    "curly-shag": {
-      title: "Curly Shag Layered",
-      desc: "A messy shaggy cut modified for curly textures, featuring shorter crown layers.",
-      face: "Oval, Square, Diamond",
-      maintenance: "Low-Medium",
-      texture: "Curly, Thick",
-      price: "R 950",
-      stylist: "Sophia Martinez"
-    },
-    "curly-messy": {
-      title: "Messy Ringlet Volume",
-      desc: "Relaxed curly ringlets styled with sea salt curl activator for an effortless style.",
-      face: "Oval, Round, Square",
-      maintenance: "Low",
-      texture: "Curly, Medium",
-      price: "R 890",
-      stylist: "Michael Thabo"
-    },
-    "curly-glamour": {
-      title: "Golden Glam Curls",
-      desc: "Polished curls highlighted in soft gold hues, styled for maximum volume and bounce.",
-      face: "Oval, Heart, Diamond",
-      maintenance: "High",
-      texture: "Curly, Thick",
-      price: "R 1,680",
-      stylist: "Michael Thabo"
-    },
-    "curly-corkscrew": {
-      title: "Corkscrew Spiral Volume",
-      desc: "Intense, tight corkscrew curls styled to create full, geometric halo volume.",
-      face: "Round, Oval, Square",
-      maintenance: "High",
-      texture: "Curly, Coarse",
-      price: "R 1,180",
-      stylist: "Michael Thabo"
-    },
-    "curly-crown": {
-      title: "Crown Volume Spirals",
-      desc: "Features layered styling focused on the crown to give lift and prevent flat roots.",
-      face: "Round, Heart, Diamond",
-      maintenance: "Medium-High",
-      texture: "Curly, Medium",
-      price: "R 1,050",
-      stylist: "Sophia Martinez"
-    },
-    "curly-cascading": {
-      title: "Cascading Ringlet Layers",
-      desc: "Curls styled to fall in descending layers around the face for soft framing.",
-      face: "Oval, Long, Diamond",
-      maintenance: "High",
-      texture: "Curly, Thick",
-      price: "R 1,250",
-      stylist: "Michael Thabo"
-    },
-    "curly-soft": {
-      title: "Soft Romantique Curls",
-      desc: "Gentle, romantic curls styled with curl-enhancing creams for touchable softness.",
-      face: "Oval, Heart, Long",
-      maintenance: "Medium",
-      texture: "Curly, Fine",
-      price: "R 980",
-      stylist: "Sophia Martinez"
+  uploadZone.addEventListener('drop', (e) => {
+    const dt = e.dataTransfer;
+    const files = dt.files;
+    if (files && files[0]) {
+      handleImageFile(files[0]);
     }
-  };
+  });
 
-  // Set default details
-  updateLookbookDetails('bob-sleek');
-  updateStyleRecipe();
+  // Click zone triggers file dialog
+  uploadZone.addEventListener('click', (e) => {
+    // Avoid triggering file selector when clicking remove button
+    if (e.target !== btnRemoveUpload && !btnRemoveUpload.contains(e.target)) {
+      fileInput.click();
+    }
+  });
 
-  function updateLookbookDetails(presetKey) {
-    const data = lookbookData[presetKey];
-    if (!data) return;
+  fileInput.addEventListener('change', (e) => {
+    if (fileInput.files && fileInput.files[0]) {
+      handleImageFile(fileInput.files[0]);
+    }
+  });
 
-    const titleEl = document.getElementById('lookbook-title');
-    const descEl = document.getElementById('lookbook-desc');
-    const faceEl = document.getElementById('spec-face');
-    const maintEl = document.getElementById('spec-maintenance');
-    const textureEl = document.getElementById('spec-texture');
-    const priceEl = document.getElementById('spec-price');
+  btnRemoveUpload.addEventListener('click', (e) => {
+    e.stopPropagation();
+    resetUpload();
+  });
 
-    if (titleEl) titleEl.textContent = data.title;
-    if (descEl) descEl.textContent = data.desc;
-    if (faceEl) faceEl.textContent = data.face;
-    if (maintEl) maintEl.textContent = data.maintenance;
-    if (textureEl) textureEl.textContent = data.texture;
-    if (priceEl) priceEl.textContent = data.price;
+  function handleImageFile(file) {
+    if (!file.type.startsWith('image/')) {
+      alert('Please upload a valid image file.');
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      alert('File size exceeds 5MB limit.');
+      return;
+    }
 
-    globalBookingState.service = data.title;
-    globalBookingState.price = data.price;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      uploadedImageBase64 = e.target.result;
+      previewImg.src = uploadedImageBase64;
+      previewContainer.style.display = 'flex';
+      uploadPrompt.style.display = 'none';
+      if (specUploadStatus) {
+        specUploadStatus.textContent = 'Reference Uploaded';
+        specUploadStatus.style.color = 'var(--accent-gold)';
+      }
+      globalBookingState.capturedImage = uploadedImageBase64;
+      updateStyleRecipe();
+    };
+    reader.readAsDataURL(file);
   }
 
-  // Carousel click card listeners
-  carouselCards.forEach(card => {
-    card.addEventListener('click', () => {
-      carouselCards.forEach(c => c.classList.remove('active'));
-      card.classList.add('active');
-      activeStyleName = card.getAttribute('data-style') || 'bob';
-      const presetKey = card.getAttribute('data-preset') || activeStyleName;
-      updateLookbookDetails(presetKey);
-      updateStyleRecipe();
-    });
-  });
+  function resetUpload() {
+    fileInput.value = '';
+    uploadedImageBase64 = null;
+    previewImg.src = '';
+    previewContainer.style.display = 'none';
+    uploadPrompt.style.display = 'flex';
+    if (specUploadStatus) {
+      specUploadStatus.textContent = 'No File Uploaded';
+      specUploadStatus.style.color = '';
+    }
+    globalBookingState.capturedImage = null;
+    updateStyleRecipe();
+  }
 
   // Compile checklist options into the style recipe
   function updateStyleRecipe() {
@@ -744,24 +322,33 @@ function init3DStylingLab() {
     });
     const extrasText = selectedExtras.length > 0 ? selectedExtras.join(', ') : "None";
 
-    const activeCard = document.querySelector('.carousel-card.active');
-    const presetKey = activeCard?.getAttribute('data-preset') || activeStyleName;
-    const styleData = lookbookData[presetKey] || {};
-    
-    let recipe = `Base Style: ${styleData.title || activeStyleName.toUpperCase()}\n` +
+    let photoAttached = uploadedImageBase64 ? "Attached (Custom Reference Photo)" : "Not Attached";
+
+    let recipe = `Custom Cut preferences:\n` +
                  `· Length: ${selectedLength}\n` +
                  `· Color Finish: ${colorText}\n` +
                  `· Texture Style: ${selectedTexture}\n` +
                  `· Bangs/Fringe: ${selectedBangs}\n` +
-                 `· Custom Extras: ${extrasText}`;
+                 `· Custom Extras: ${extrasText}\n` +
+                 `· Reference Image: ${photoAttached}`;
 
     globalBookingState.styleRecipe = recipe;
+    globalBookingState.service = "Custom Styled Consultation";
+    globalBookingState.price = "R 650"; // Standard flat consultation fee
+
+    if (specRecipeStatus) {
+      specRecipeStatus.textContent = 'Recipe Ready';
+      specRecipeStatus.style.color = 'var(--accent-gold)';
+    }
   }
 
   // Bind preferred cut builder checkbox listeners
   document.querySelectorAll('#preferred-cut-builder-box input').forEach(input => {
     input.addEventListener('change', updateStyleRecipe);
   });
+
+  // Initialize recipe compilation on load
+  updateStyleRecipe();
 
   // Capture snapshot / prescription card receipt handler with biometric scan animation
   btnCaptureSnapshot?.addEventListener('click', () => {
@@ -772,29 +359,28 @@ function init3DStylingLab() {
     btnCaptureSnapshot.disabled = true;
     btnCaptureSnapshot.innerHTML = `<span class="spinner" style="display:inline-block; width:12px; height:12px; border:2px solid rgba(255,255,255,0.3); border-top-color:#fff; border-radius:50%; animation: spin 0.8s linear infinite; margin-right: 0.35rem; vertical-align: middle;"></span>Scanning...`;
 
+    // Show scanner overlay
+    if (biometricScannerOverlay) {
+      biometricScannerOverlay.style.display = 'flex';
+    }
+
     setTimeout(() => {
       isScanning = false;
       btnCaptureSnapshot.disabled = false;
       btnCaptureSnapshot.innerHTML = originalHTML;
 
+      if (biometricScannerOverlay) {
+        biometricScannerOverlay.style.display = 'none';
+      }
+
       updateStyleRecipe(); // ensure latest state
       
-      const activeCard = document.querySelector('.carousel-card.active');
-      const presetKey = activeCard?.getAttribute('data-preset') || activeStyleName;
-      
-      // Save to booking state
-      globalBookingState.service = lookbookData[presetKey]?.title || activeStyleName;
-      globalBookingState.price = lookbookData[presetKey]?.price || "R 650";
-      
-      // Save style snapshot image
-      globalBookingState.capturedImage = canvas.toDataURL('image/png');
-
       // Play quick visual flash
       const flash = document.getElementById('camera-flash-effect') || document.createElement('div');
       if (!document.getElementById('camera-flash-effect')) {
         flash.id = 'camera-flash-effect';
         flash.className = 'camera-flash';
-        canvas.parentElement.appendChild(flash);
+        uploadZone.appendChild(flash);
       }
       flash.classList.add('flash-active');
       setTimeout(() => flash.classList.remove('flash-active'), 500);
@@ -816,12 +402,17 @@ function init3DStylingLab() {
           msg.id = id;
           msg.className = 'chat-bubble bot-message';
           
-          msg.innerHTML = `<p>🧬 <strong>Biometric Styling Scan Complete!</strong></p>` +
-                          `<p>Your custom recipe has been saved to your booking draft:</p>` +
+          let referenceText = uploadedImageBase64 
+            ? `<p>📸 <strong>Custom Reference Photo Attached!</strong></p>` 
+            : `<p>💡 <em>Tip: You can upload a reference image to help your stylist capture your dream look precisely!</em></p>`;
+
+          msg.innerHTML = `<p>🧬 <strong>Biometric Styling Plan Locked!</strong></p>` +
+                          `<p>Your custom recipe has been compiled:</p>` +
                           `<pre style="background: rgba(0,0,0,0.2); padding: 0.5rem; border-radius: 6px; font-size: 0.75rem; color: var(--accent-gold); font-family: monospace; white-space: pre-wrap; margin: 0.5rem 0;">` +
                           `${globalBookingState.styleRecipe}</pre>` +
+                          referenceText +
                           `<p style="font-size: 0.82rem; margin-bottom: 0;">` +
-                          `When you book your appointment, this recipe will be attached so your stylist can prep in advance!</p>`;
+                          `When you book your appointment, this recipe and your photo will be sent to your stylist!</p>`;
           chatMessages.appendChild(msg);
           chatMessages.scrollTop = chatMessages.scrollHeight;
         }
@@ -829,320 +420,46 @@ function init3DStylingLab() {
     }, 2000);
   });
 
-  // Vector hair silhouettes drawing function
-  function drawHairstyle(ctx, type, cx, cy, sc, h) {
-    ctx.save();
-    ctx.translate(cx, cy);
-    ctx.scale(sc, sc);
-
-    // Create HSL colors
-    const baseColor = `hsla(${h}, 50%, 15%, 0.88)`;
-    const highlightColor1 = `hsla(${h}, 85%, 55%, 0.6)`;
-    const highlightColor2 = `hsla(${(h + 20) % 360}, 90%, 65%, 0.5)`;
-    const shadowColor = `rgba(0, 0, 0, 0.4)`;
-
-    ctx.shadowColor = shadowColor;
-    ctx.shadowBlur = 15;
-
-    if (type === 'bob') {
-      ctx.beginPath();
-      ctx.fillStyle = baseColor;
-      ctx.moveTo(-70, 70);
-      ctx.lineTo(-75, -20);
-      ctx.bezierCurveTo(-75, -110, 75, -110, 75, -20);
-      ctx.lineTo(70, 70);
-      ctx.quadraticCurveTo(60, 85, 50, 80);
-      ctx.lineTo(48, 20);
-      ctx.bezierCurveTo(20, 25, -20, 25, -48, 20);
-      ctx.lineTo(-50, 80);
-      ctx.quadraticCurveTo(-60, 85, -70, 70);
-      ctx.closePath();
-      ctx.fill();
-
-      ctx.shadowColor = "transparent";
-      ctx.shadowBlur = 0;
-      ctx.lineWidth = 2;
-
-      for (let i = -65; i <= 65; i += 6) {
-        ctx.beginPath();
-        ctx.strokeStyle = i % 12 === 0 ? highlightColor1 : highlightColor2;
-        ctx.moveTo(i * 0.8, -85);
-        ctx.bezierCurveTo(i, -30, i, 30, i * 1.05, 72);
-        ctx.stroke();
-      }
-
-      for (let i = -40; i <= 40; i += 4) {
-        ctx.beginPath();
-        ctx.strokeStyle = highlightColor2;
-        ctx.moveTo(i * 0.5, -80);
-        ctx.quadraticCurveTo(i * 0.8, -30, i, 20);
-        ctx.stroke();
-      }
-
-    } else if (type === 'pixie') {
-      ctx.beginPath();
-      ctx.fillStyle = baseColor;
-      ctx.moveTo(-60, 20);
-      ctx.lineTo(-65, -15);
-      ctx.bezierCurveTo(-60, -95, 60, -95, 65, -15);
-      ctx.lineTo(60, 20);
-      ctx.lineTo(50, 5);
-      ctx.bezierCurveTo(25, 0, -25, 0, -50, 5);
-      ctx.closePath();
-      ctx.fill();
-
-      ctx.shadowColor = "transparent";
-      ctx.shadowBlur = 0;
-      ctx.lineWidth = 2.5;
-      
-      for (let r = 20; r < 80; r += 15) {
-        for (let a = -Math.PI + 0.2; a < -0.2; a += 0.25) {
-          const x1 = Math.cos(a) * (r - 10);
-          const y1 = Math.sin(a) * (r - 10) - 20;
-          const x2 = Math.cos(a + 0.1) * r;
-          const y2 = Math.sin(a + 0.1) * r - 20;
-          
-          ctx.beginPath();
-          ctx.strokeStyle = a % 0.5 < 0.25 ? highlightColor1 : highlightColor2;
-          ctx.moveTo(x1, y1);
-          ctx.lineTo(x2, y2);
-          ctx.stroke();
-        }
-      }
-
-      for (let i = -45; i <= 45; i += 6) {
-        ctx.beginPath();
-        ctx.strokeStyle = highlightColor2;
-        ctx.moveTo(i * 0.8, -60);
-        ctx.lineTo(i, 8 + Math.sin(i * 0.5) * 4);
-        ctx.stroke();
-      }
-
-    } else if (type === 'waves') {
-      ctx.beginPath();
-      ctx.fillStyle = baseColor;
-      ctx.moveTo(-85, 170);
-      ctx.bezierCurveTo(-65, 120, -85, 70, -70, -20);
-      ctx.bezierCurveTo(-70, -115, 70, -115, 70, -20);
-      ctx.bezierCurveTo(85, 70, 65, 120, 85, 170);
-      ctx.quadraticCurveTo(70, 180, 55, 160);
-      ctx.bezierCurveTo(45, 110, 55, 60, 45, 30);
-      ctx.bezierCurveTo(20, 35, -20, 35, -45, 30);
-      ctx.bezierCurveTo(-55, 60, -45, 110, -55, 160);
-      ctx.quadraticCurveTo(-70, 180, -85, 170);
-      ctx.closePath();
-      ctx.fill();
-
-      ctx.shadowColor = "transparent";
-      ctx.shadowBlur = 0;
-      ctx.lineWidth = 2;
-
-      for (let offset = -75; offset <= 75; offset += 10) {
-        if (Math.abs(offset) < 15) continue;
-        
-        ctx.beginPath();
-        ctx.strokeStyle = offset % 20 === 0 ? highlightColor1 : highlightColor2;
-        
-        let startX = offset * 0.8;
-        let startY = -80;
-        ctx.moveTo(startX, startY);
-        
-        for (let y = -70; y <= 165; y += 10) {
-          const waveX = startX + Math.sin(y * 0.05 + offset) * 12;
-          ctx.lineTo(waveX, y);
-        }
-        ctx.stroke();
-      }
-
-      for (let i = -30; i <= 30; i += 6) {
-        ctx.beginPath();
-        ctx.strokeStyle = highlightColor2;
-        ctx.moveTo(i * 0.3, -80);
-        ctx.quadraticCurveTo(i, -40, i * 1.3, 20);
-        ctx.stroke();
-      }
-
-    } else if (type === 'afro') {
-      ctx.beginPath();
-      ctx.fillStyle = baseColor;
-      
-      const c_x = 0;
-      const c_y = -20;
-      const radius = 100;
-      
-      ctx.moveTo(radius, c_y);
-      for (let angle = 0; angle <= Math.PI * 2; angle += 0.15) {
-        const x = c_x + Math.cos(angle) * radius;
-        const y = c_y + Math.sin(angle) * radius;
-        const puffX = x + Math.cos(angle * 6) * 8;
-        const puffY = y + Math.sin(angle * 6) * 8;
-        ctx.lineTo(puffX, puffY);
-      }
-      ctx.closePath();
-      ctx.fill();
-
-      ctx.shadowColor = "transparent";
-      ctx.shadowBlur = 0;
-      ctx.lineWidth = 1.5;
-
-      const coilsCount = 120;
-      for (let i = 0; i < coilsCount; i++) {
-        const angle = Math.random() * Math.PI * 2;
-        const dist = Math.random() * 90;
-        const x = Math.cos(angle) * dist;
-        const y = Math.sin(angle) * dist - 20;
-
-        if (Math.abs(x) < 35 && y > -10 && y < 60) continue;
-
-        ctx.beginPath();
-        ctx.strokeStyle = i % 3 === 0 ? highlightColor1 : highlightColor2;
-        ctx.arc(x, y, 4 + Math.random() * 5, 0, Math.PI * 1.5 + Math.random() * Math.PI);
-        ctx.stroke();
-      }
-
-    } else if (type === 'curly') {
-      ctx.beginPath();
-      ctx.fillStyle = baseColor;
-      ctx.moveTo(-80, 160);
-      ctx.bezierCurveTo(-70, 70, -80, 10, -65, -30);
-      ctx.bezierCurveTo(-65, -110, 65, -110, 65, -30);
-      ctx.bezierCurveTo(80, 10, 70, 70, 80, 160);
-      ctx.quadraticCurveTo(65, 170, 50, 150);
-      ctx.bezierCurveTo(45, 80, 45, 30, 40, 20);
-      ctx.bezierCurveTo(15, 25, -15, 25, -40, 20);
-      ctx.bezierCurveTo(-45, 80, -45, 30, -50, 150);
-      ctx.quadraticCurveTo(-65, 170, -80, 160);
-      ctx.closePath();
-      ctx.fill();
-
-      ctx.shadowColor = "transparent";
-      ctx.shadowBlur = 0;
-      ctx.lineWidth = 1.8;
-
-      for (let offset = -70; offset <= 70; offset += 12) {
-        if (Math.abs(offset) < 18) continue;
-        
-        ctx.beginPath();
-        ctx.strokeStyle = offset % 24 === 0 ? highlightColor1 : highlightColor2;
-        
-        let cx_pos = offset * 0.85;
-        let cy_pos = -75;
-        ctx.moveTo(cx_pos, cy_pos);
-        
-        for (let y = -70; y <= 150; y += 8) {
-          const curlX = cx_pos + Math.sin(y * 0.3) * 8;
-          ctx.lineTo(curlX, y);
-        }
-        ctx.stroke();
-      }
-
-      for (let i = -30; i <= 30; i += 8) {
-        ctx.beginPath();
-        ctx.strokeStyle = highlightColor2;
-        ctx.moveTo(i * 0.4, -75);
-        ctx.quadraticCurveTo(i, -30, i * 1.2, 15);
-        ctx.stroke();
-      }
-    }
-
-    ctx.restore();
-  }
-
-  // Draw loop
-  let time = 0;
-  function draw() {
-    time += 0.04;
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    // 1. Draw solid dark background
-    ctx.fillStyle = '#090812';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    
-    // 2. Draw background scan grid lines
-    ctx.strokeStyle = 'rgba(212, 163, 115, 0.03)';
-    ctx.lineWidth = 1;
-    for (let i = 0; i < canvas.width; i += 50) {
-      ctx.beginPath();
-      ctx.moveTo(i, 0);
-      ctx.lineTo(i, canvas.height);
-      ctx.stroke();
-    }
-
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
-    ctx.font = '12px Outfit';
-    ctx.textAlign = 'center';
-    ctx.fillText('[ 3D PRESET SILHOUETTE VIEWPORT ]', canvas.width / 2, canvas.height / 2 + 80);
-
-    // 3. Draw biometric scanner effect if scanning
-    if (isScanning) {
-      scanProgress += 0.05;
-      const scanY = (Math.sin(time * 2.5) * 0.5 + 0.5) * canvas.height;
-      ctx.beginPath();
-      ctx.strokeStyle = 'rgba(212, 163, 115, 0.6)';
-      ctx.lineWidth = 3;
-      ctx.shadowColor = 'var(--accent-gold)';
-      ctx.shadowBlur = 10;
-      ctx.moveTo(0, scanY);
-      ctx.lineTo(canvas.width, scanY);
-      ctx.stroke();
-      ctx.shadowColor = 'transparent';
-      ctx.shadowBlur = 0;
-      ctx.lineWidth = 1;
-
-      ctx.fillStyle = 'var(--accent-gold)';
-      ctx.font = '700 13px Outfit';
-      ctx.fillText('Scanning Biometrics...', canvas.width / 2, canvas.height / 2 + 100);
-    }
-
-    // 4. Draw static preset hairstyle silhouette in center of screen
-    const activeCard = document.querySelector('.carousel-card.active');
-    let currentHue = 330;
-    if (activeCard) {
-      currentHue = parseInt(activeCard.getAttribute('data-hue') || '330');
-    }
-
-    drawHairstyle(ctx, activeStyleName, canvas.width / 2, canvas.height / 2 - 20, 1.05, currentHue);
-
-    requestAnimationFrame(draw);
-  }
-  draw();
-
   return {
     triggerBiometricScan: (callback) => {
       isScanning = true;
+      if (biometricScannerOverlay) {
+        biometricScannerOverlay.style.display = 'flex';
+      }
       setTimeout(() => {
         isScanning = false;
+        if (biometricScannerOverlay) {
+          biometricScannerOverlay.style.display = 'none';
+        }
         if (callback) callback();
       }, 2000);
     },
     updateParameters: (stylePreset, lengthValNum, hueValNum) => {
-      let lookbookKey = 'bob';
-      let presetKey = 'bob-sleek';
+      // Automatically toggle builder controls based on quiz suggestions
+      // 1. Texture mapping
+      let textureInput = document.querySelector(`input[name="cut-texture"][value="Natural Waves"]`);
       if (stylePreset === 'straight') {
-        lookbookKey = 'bob';
-        presetKey = 'bob-sleek';
+        textureInput = document.querySelector(`input[name="cut-texture"][value="Glass Straight"]`);
       } else if (stylePreset === 'wavy') {
-        lookbookKey = 'waves';
-        presetKey = 'waves-beach';
-      } else if (stylePreset === 'curly') {
-        lookbookKey = 'curly';
-        presetKey = 'curly-volume';
-      } else if (stylePreset === 'afro' || stylePreset === 'coily') {
-        lookbookKey = 'afro';
-        presetKey = 'afro-coils';
-      } else if (stylePreset === 'pixie') {
-        lookbookKey = 'pixie';
-        presetKey = 'pixie-chic';
+        textureInput = document.querySelector(`input[name="cut-texture"][value="Natural Waves"]`);
+      } else if (stylePreset === 'curly' || stylePreset === 'afro' || stylePreset === 'coily') {
+        textureInput = document.querySelector(`input[name="cut-texture"][value="Defined Curls"]`);
       }
+      if (textureInput) textureInput.checked = true;
 
-      const targetCard = Array.from(carouselCards).find(c => c.getAttribute('data-preset') === presetKey);
-      if (targetCard) {
-        carouselCards.forEach(c => c.classList.remove('active'));
-        targetCard.classList.add('active');
+      // 2. Length mapping
+      let lengthInput = document.querySelector(`input[name="cut-length"][value="Classic Bob"]`);
+      if (lengthValNum < 2.5) {
+        lengthInput = document.querySelector(`input[name="cut-length"][value="Short Crop"]`);
+      } else if (lengthValNum < 4.0) {
+        lengthInput = document.querySelector(`input[name="cut-length"][value="Classic Bob"]`);
+      } else if (lengthValNum < 5.5) {
+        lengthInput = document.querySelector(`input[name="cut-length"][value="Shoulder Length"]`);
+      } else {
+        lengthInput = document.querySelector(`input[name="cut-length"][value="Long Flowing"]`);
       }
+      if (lengthInput) lengthInput.checked = true;
 
-      activeStyleName = lookbookKey;
-      updateLookbookDetails(presetKey);
       updateStyleRecipe();
     }
   };
@@ -1646,8 +963,8 @@ function generateAndDownloadReceiptImage(data) {
     ctx.fillStyle = '#a09cb0';
     ctx.font = '12px Outfit, sans-serif';
     ctx.textAlign = 'center';
-    ctx.fillText('[ No Styling Image Captured ]', 170, 230);
-    ctx.fillText('Use the styling lab to overlay photo', 170, 250);
+    ctx.fillText('[ No Reference Image Uploaded ]', 170, 230);
+    ctx.fillText('Upload a style photo for the stylist', 170, 250);
     ctx.textAlign = 'left';
 
     continueDrawingText();

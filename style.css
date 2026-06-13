@@ -1941,9 +1941,82 @@ footer p {
     border-color: var(--accent-gold);
   }
 }
-
 @keyframes spin {
   to {
     transform: rotate(360deg);
   }
 }
+
+/* Hairstyle Reference Uploader styling */
+.upload-zone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  min-height: 280px;
+  background: rgba(255, 255, 255, 0.01);
+  border: 2px dashed rgba(212, 163, 115, 0.25);
+  border-radius: 12px;
+  padding: 1.5rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+.upload-zone:hover, .upload-zone.dragover {
+  background: rgba(212, 163, 115, 0.04);
+  border-color: var(--accent-gold);
+  box-shadow: 0 0 15px rgba(212, 163, 115, 0.15);
+}
+.upload-prompt {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.3s ease;
+}
+.upload-icon {
+  color: var(--accent-gold);
+  margin-bottom: 0.5rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.upload-zone:hover .upload-icon {
+  transform: translateY(-4px);
+}
+.upload-main-text {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-main);
+  margin: 0;
+}
+.upload-sub-text {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin: 0;
+}
+.upload-limit {
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.25);
+  margin-top: 0.25rem;
+}
+.upload-overlay-actions {
+  opacity: 0;
+  transition: all 0.3s ease;
+}
+.upload-preview-container:hover .upload-overlay-actions {
+  opacity: 1;
+}
+
+@keyframes scanLaserMove {
+  0% { top: 0%; }
+  50% { top: 100%; }
+  100% { top: 0%; }
+}
+@keyframes scanPulse {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+
